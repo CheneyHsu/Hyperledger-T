@@ -43,8 +43,8 @@ CentOS 7.3 + Fabric 1.0 release
 2.    tar -xzvf go1.8.1.linux-amd64.tar.gz
 3.    mv ./go  /usr/local
 4.    vim /etc/profile
-    export GOROOT=/usr/local/go
-    export PATH=$PATH:$GOROOT/bin
+            export GOROOT=/usr/local/go
+            export PATH=$PATH:$GOROOT/bin
 5.    source /etc/profile
 ```
 
