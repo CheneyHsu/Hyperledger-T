@@ -67,8 +67,6 @@ Setup Fabric 1.0 （SingleNode E2E）
     1.    cd $GOPATH
     2.    cp -rf gotools/build/gopath/bin/protoc-gen-go ./build/docker/gotools/bin/
 
->woshi shei
-
 ### Make docker (Fabric CA)
 
     1.    cd $GOPATH/src/github.com/hyperledger/fabric/
