@@ -63,13 +63,14 @@ CentOS 7.3 + Fabric 1.0 release
 ### Make gotools
 
 ```
-1.	cd $GOPATH/src/github.com/hyperledger/fabric/gotools/build/gopath/src/github.com/golang.org/x/
+1.    cd $GOPATH/src/github.com/hyperledger/fabric/gotools/build/gopath/src/github.com/golang.org/x/
         #if not directory , maybe use mkdir create it. 
-2.	git clone https://github.com/golang/tools
-3.	cd /root/fabric/fabric/src/github.com/hyperledger/fabric
-4.	make gotools
-
+2.    git clone https://github.com/golang/tools
+3.    cd /root/fabric/fabric/src/github.com/hyperledger/fabric
+4.    make gotools
 ```
+
+### Make Docker（Base）
 
 
 
