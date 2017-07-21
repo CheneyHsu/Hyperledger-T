@@ -72,5 +72,22 @@ CentOS 7.3 + Fabric 1.0 release
 
 ### Make Docker（Base）
 
+```
+1.	cd $GOPATH/src/github.com/hyperledger/fabric
+2.	make docker
+      // not found proto-gen-go
+4.      cd $GOPATH
+5.      cp -rf gotools/build/gopath/bin/protoc-gen-go ./build/docker/gotools/bin/
+
+```
+
+### Not found proto-gen-go
+
+```
+1.      cd $GOPATH
+2.      cp -rf gotools/build/gopath/bin/protoc-gen-go ./build/docker/gotools/bin/
+
+```
+
 
 
