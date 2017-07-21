@@ -4,21 +4,31 @@
 
 #### `所有其他peer可以发现并与之通信的channel上的一个peer。channel上的每个Member都有一个（或者对个，以防止单点故障）Anchor Peer，允许属于不同Member的peer发现channel上的现有其他peer。`
 
+---
+
 ### **Block /区块**
 
 #### `在一个channel上与前一个block加密连接的一组有序交易集。`
+
+---
 
 ### **Chain /链**
 
 #### `chain就是block之间以hash连接为结构的交易日志。peer从order service接收交易block，并根据背书策略和并发冲突标记block上的交易是否有效，然后将该block追加到peer文件系统中的hash chain上。`
 
+---
+
 ### **Chaincode /链码**
 
 #### `Chaincode是一个运行在ledger上的软件，对资产和交易指令（业务逻辑）编码来修改资产。`
 
+---
+
 **Channel /通道**
 
 channel是在Fabric网络中的私有区块链区域，实现了数据的隔离和保密。channel特定的ledger在该channel上的所有peer之间共享，交易方必须有对该channel正确的认证才能与该ledger交互。channel由Configuration Block定义。
+
+---
 
 **Commitment /提交**
 
