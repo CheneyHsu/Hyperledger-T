@@ -87,10 +87,10 @@ CentOS 7.3 + Fabric 1.0 release
 ### Make docker \(Fabric CA\)
 
 ```
-1.	git clone https://github.com/hyperledger/fabric-ca.git
-2.	cd fabric-ca
-3.	make docker
-
+1.    cd $GOPATH/src/github.com/hyperledger/fabric/
+1.    git clone https://github.com/hyperledger/fabric-ca.git
+2.    cd fabric-ca
+3.    make docker
 ```
 
 
