@@ -1,1 +1,1 @@
-# Hyperledger 1.0 架构
+# Hyperledger 1.0 解读
