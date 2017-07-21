@@ -10,5 +10,7 @@ E2E Deployment Model
 
 
 ###  Multi Node Deployment
-  E2E的示例相对来讲还是比较简单的，但是现实中无法这样运作，实际场景中，所有节点可能会由不同的组织分别使用和维护，所以peer和orderer节点必然不会再同一物理机上。
 ![png](../images/MultiNode.PNG)
+
+#### Multi Node Deployment:
+E2E的示例相对来讲还是比较简单的，但是现实中无法这样运作，实际场景中，所有节点可能会由不同的组织分别使用和维护，所以peer和orderer节点必然不会再同一物理机上。
