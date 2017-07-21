@@ -15,20 +15,28 @@ CentOS 7.3 + Fabric 1.0 release
 4.    Rest Client: rest API 测试；
 ```
 
-###  HyperLedger Fabric环境准备
+### HyperLedger Fabric环境准备
 
 ```
-1.	yum update
-2.	yum install –y  docker gcc gcc-c++ epel-release
-3.	yum install docker
-4.	systemctl enable docker
-5.	systemctl restart docker
-6.	yum -y install python-pip
-7.	pip install docker-compose>=1.8.0
-8.	yum -y install git
-9.	yum install -y libtool libltdl-dev openssl
-10.	setenforce 0
+1.    yum update
+2.    yum install –y  docker gcc gcc-c++ epel-release
+3.    yum install docker
+4.    systemctl enable docker
+5.    systemctl restart docker
+6.    yum -y install python-pip
+7.    pip install docker-compose>=1.8.0
+8.    yum -y install git
+9.    yum install -y libtool libltdl-dev openssl
+10.   setenforce 0
 ```
+
+```
+1. 修改Selinux设置为被动或者不启动模式， Setup Selinux to permissive or disabled
+    vim /etc/selinux/config
+    SELINUX=enforcing -->  SELINUX=disabled 
+```
+
+### HyperLedger Fabric环境准备
 
 
 
