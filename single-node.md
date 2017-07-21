@@ -96,6 +96,8 @@ CentOS 7.3 + Fabric 1.0 release
 ### Startup E2E
 
 ```
+1.	cd $GOPATH/src/github.com/hyperledger/fabric/examples/e2e_cli 
+2.	./network_setup.sh up mytestchannel
 
 ```
 
