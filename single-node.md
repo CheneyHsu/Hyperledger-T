@@ -103,7 +103,10 @@ CentOS 7.3 + Fabric 1.0 release
 
 ### Stop & Clean  E2E
 
-
+```
+3.	cd $GOPATH/src/github.com/hyperledger/fabric/examples/e2e_cli 
+4.	./network_setup.sh down
+```
 
 
 
