@@ -48,5 +48,11 @@ CentOS 7.3 + Fabric 1.0 release
 5.    source /etc/profile
 ```
 
+### Setup Fabric 1.0 environment preparation
+
+```
+
+```
+
 
 
