@@ -51,15 +51,16 @@ CentOS 7.3 + Fabric 1.0 release
 ### Setup Fabric 1.0 environment preparation
 
 ```
-1.	vim ~/.bashrc
+1.    vim ~/.bashrc
             export GOPATH=/home/fabric/fabric
-2.	source ~/.bashrc
-3.	cd $GOPATH
-4.	mkdir -p src/github.com/hyperledger 
-5.	cd $GOPATH/src/github.com/hyperledger
-6.	git clone https://github.com/hyperledger/fabric.git
-
+2.    source ~/.bashrc
+3.    cd $GOPATH
+4.    mkdir -p src/github.com/hyperledger 
+5.    cd $GOPATH/src/github.com/hyperledger
+6.    git clone https://github.com/hyperledger/fabric.git
 ```
+
+### Make gotools
 
 
 
