@@ -31,7 +31,7 @@ CentOS 7.3 + Fabric 1.0 release
 ```
 
 ```
-1. 修改Selinux设置为被动或者不启动模式， Setup Selinux to permissive or disabled
+1. Setup Selinux to permissive or disabled 
     vim /etc/selinux/config
     SELINUX=enforcing -->  SELINUX=disabled
 ```
@@ -39,13 +39,13 @@ CentOS 7.3 + Fabric 1.0 release
 ### Setup GoLang
 
 ```
-1.	wget https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
-2.	tar -xzvf go1.8.1.linux-amd64.tar.gz
-3.	mv ./go  /usr/local
-4.	vim /etc/profile
-	export GOROOT=/usr/local/go
-	export PATH=$PATH:$GOROOT/bin
-5.	source /etc/profile
+1.    wget https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
+2.    tar -xzvf go1.8.1.linux-amd64.tar.gz
+3.    mv ./go  /usr/local
+4.    vim /etc/profile
+    export GOROOT=/usr/local/go
+    export PATH=$PATH:$GOROOT/bin
+5.    source /etc/profile
 ```
 
 
