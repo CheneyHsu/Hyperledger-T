@@ -1,12 +1,12 @@
 # Setup  Fabric 1.0  （SingleNode）
 
-## _环境要求_
+### 环境要求
 
 ```
 CentOS 7.3 + Fabric 1.0 release
 ```
 
-## _核心组件_
+### _核心组件_
 
 ```
 1.    Docker-compose:Docker 容器管理；   
@@ -15,9 +15,7 @@ CentOS 7.3 + Fabric 1.0 release
 4.    Rest Client: rest API 测试；
 ```
 
-## _ **HyperLedger Fabric环境准备**_
-
-
+### _ **HyperLedger Fabric环境准备**_
 
 
 
