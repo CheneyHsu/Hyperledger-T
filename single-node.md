@@ -6,7 +6,7 @@
 CentOS 7.3 + Fabric 1.0 release
 ```
 
-### _核心组件_
+### 核心组件
 
 ```
 1.    Docker-compose:Docker 容器管理；   
@@ -15,7 +15,20 @@ CentOS 7.3 + Fabric 1.0 release
 4.    Rest Client: rest API 测试；
 ```
 
-### _ **HyperLedger Fabric环境准备**_
+###  HyperLedger Fabric环境准备
+
+```
+1.	yum update
+2.	yum install –y  docker gcc gcc-c++ epel-release
+3.	yum install docker
+4.	systemctl enable docker
+5.	systemctl restart docker
+6.	yum -y install python-pip
+7.	pip install docker-compose>=1.8.0
+8.	yum -y install git
+9.	yum install -y libtool libltdl-dev openssl
+10.	setenforce 0
+```
 
 
 
