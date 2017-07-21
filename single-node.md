@@ -80,8 +80,8 @@ CentOS 7.3 + Fabric 1.0 release
 ### Not found proto-gen-go
 
 ```
-1.      cd $GOPATH
-2.      cp -rf gotools/build/gopath/bin/protoc-gen-go ./build/docker/gotools/bin/
+1.    cd $GOPATH
+2.    cp -rf gotools/build/gopath/bin/protoc-gen-go ./build/docker/gotools/bin/
 ```
 
 
