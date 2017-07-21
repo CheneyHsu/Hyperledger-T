@@ -1,12 +1,12 @@
 # Setup  Fabric 1.0  （SingleNode）
 
-### 环境要求
+### OS Version
 
 ```
 CentOS 7.3 + Fabric 1.0 release
 ```
 
-### 核心组件
+### Core components
 
 ```
 1.    Docker-compose:Docker 容器管理；   
@@ -15,7 +15,7 @@ CentOS 7.3 + Fabric 1.0 release
 4.    Rest Client: rest API 测试；
 ```
 
-### HyperLedger Fabric环境准备
+### System environment preparation
 
 ```
 1.    yum update
@@ -33,10 +33,12 @@ CentOS 7.3 + Fabric 1.0 release
 ```
 1. 修改Selinux设置为被动或者不启动模式， Setup Selinux to permissive or disabled
     vim /etc/selinux/config
-    SELINUX=enforcing -->  SELINUX=disabled 
+    SELINUX=enforcing -->  SELINUX=disabled
 ```
 
-### HyperLedger Fabric环境准备
+### Go安装设置
+
+
 
 
 
