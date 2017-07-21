@@ -1,4 +1,4 @@
-# Setup  Fabric 1.0  （SingleNode）
+# Setup  Fabric 1.0  （SingleNode E2E）
 
 ### OS Version
 
