@@ -28,14 +28,15 @@ CouchDB是一个完全局域RESTful API的键值数据库，可以不需要任�
 点击mychannel数据库->Run A Query with Mango,可以进行数据查询
 
 ### CouchDB 直接查询
-查看mychannel下所有信息
+查看mychannel下所有信息:
+
     curl http://192.168.56.101:5984/mychannel/_all_docs
 
-返回如下：
+State DataBase 返回如下：
 
-{"total_rows":4,"offset":0,"rows":[
-{"id":"lscc\u0000mycc","key":"lscc\u0000mycc","value":{"rev":"1-2e7d10ba4fe6c88fee76dd0da50e3dc4"}},
-{"id":"mycc\u0000a","key":"mycc\u0000a","value":{"rev":"2-2af72e502c2b43c73064728852103fbf"}},
-{"id":"mycc\u0000b","key":"mycc\u0000b","value":{"rev":"2-9c9d6a611441e331be96e2d507e36265"}},
-{"id":"statedb_savepoint","key":"statedb_savepoint","value":{"rev":"5-1a3bfd954a062e55fcf34109c1d18acf"}}
-]}
+    {"total_rows":4,"offset":0,"rows":[
+    {"id":"lscc\u0000mycc","key":"lscc\u0000mycc","value":{"rev":"1-2e7d10ba4fe6c88fee76dd0da50e3dc4"}},
+    {"id":"mycc\u0000a","key":"mycc\u0000a","value":{"rev":"2-2af72e502c2b43c73064728852103fbf"}},
+    {"id":"mycc\u0000b","key":"mycc\u0000b","value":{"rev":"2-9c9d6a611441e331be96e2d507e36265"}},
+    {"id":"statedb_savepoint","key":"statedb_savepoint","value":{"rev":"5-1a3bfd954a062e55fcf34109c1d18acf"}}
+    ]}
