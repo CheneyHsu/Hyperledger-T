@@ -40,3 +40,57 @@ State DataBase 返回如下：
     {"id":"mycc\u0000b","key":"mycc\u0000b","value":{"rev":"2-9c9d6a611441e331be96e2d507e36265"}},
     {"id":"statedb_savepoint","key":"statedb_savepoint","value":{"rev":"5-1a3bfd954a062e55fcf34109c1d18acf"}}
     ]}
+
+  查询其中的一条数据，只需要用/ChannelId/id来查询，比如查询：statedb_savepoint
+
+    curl http://192.168.56.101:5984/mychannel/statedb_savepoint
+statedb_savepoint 返回如下：
+
+    {"_id":"statedb_savepoint","_rev":"5-1a3bfd954a062e55fcf34109c1d18acf","BlockNum":4,"TxNum":0,"UpdateSeq":"9-g1AAAAEzeJzLYWBg4MhgTmHgzcvPy09JdcjLz8gvLskBCjMlMiTJ____PyuRAYeCJAUgmWQPVsOES40DSE08WA0jLjUJIDX1eO3KYwGSDA1ACqhsPiF1CyDq9uN2F0TdAYi6-4TMewBRB3QfSxYAi9hi_w"}
+
+查询业务数据是“ChainCodeName\u0000数据：
+
+    curl http://192.168.56.101:5984/mychannel/mycc\u0000a
+返回如下：（查找不到，因为0000要进行格式转换）
+
+    {"error":"not_found","reason":"missing"}
+正确查询如下：（把\u0000替换为%00）
+
+    curl http://192.168.56.101:5984/mychannel/mycc%00a
+返回信息如下：
+
+    {"_id":"mycc\u0000a","_rev":"2-2af72e502c2b43c73064728852103fbf","chaincodeid":"mycc","version":"4:0","_attachments":{"valueBytes":{"content_type":"application/octet-stream","revpos":2,"digest":"md5-qpvq4/JGMCgu7WtvFu5zbg==","length":2,"stub":true}}}
+
+## 部署新链进行测试
+虽然区块链是一个只能插入和查询的数据库，但是业务数据是存放在State Database中的，如果直接修改了CouchDB的数据，那么接下来的查询和事务是直接基于修改后的CouchDB的，并不会去检查区块链中的记录，所以理论上是可以通过直接改CouchDB来实现业务数据的修改。
+
+以官方的Marble为例，看看修改CouchDB会怎么样？
+###### Install，instantiate和初始化数据：
+
+    1：docker exec -it cli bash
+
+    2：peer chaincode install -o orderer.example.com:7050 -n marbles02 -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/marbles02
+
+    3：peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C mychannel -n marbles02  -v 1.0  -c '{"Args":["init"]}' -P "OR        ('Org1MSP.member','Org2MSP.member')"
+
+    4：peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C mychannel -n marbles02  -v 1.0 -c  ' {"Args":["initMarble","marble2","red","50","tom"]}'
+
+    5：peer chaincode query -C mychannel -n marbles02 -c  '{"Args":["readMarble","marble2"]}'
+      返回结果如下：
+      Query Result: {"color":"red","docType":"marble","name":"marble2","owner":"tom","size":50}
+
+###### 通过curl直接查询CouchDB中的数据：
+
+    curl http://192.168.56.101:5984/mychannel/marbles02%00marble2
+
+返回结果如下：
+{"_id":"marbles02\u0000marble2","_rev":"1-a1844f47b9ed94294b430c9a9a6f543b","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble2","color":"red","size":50,"owner":"tom"},"version":"6:0"}
+
+###### 修改数据的内容
+把green改成1000
+
+    curl -X PUT http://192.168.56.101:5984/mychannel/marbles02%00marble2 -d '{"_id":"marbles02\u0000marble2","_rev":"1-a1844f47b9ed94294b430c9a9a6f543b","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble2","color":"green","size":1000,"owner":"tom"},"version":"6:0"}'
+查询数据库
+    curl http://192.168.56.101:5984/mychannel/marbles02%00marble2
+    结果返回：
+    {"_id":"marbles02\u0000marble2","_rev":"2-b5943d799854cb50c01669f884c4e28b","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble2","color":"green","size":1000,"owner":"tom"},"version":"6:0"}
