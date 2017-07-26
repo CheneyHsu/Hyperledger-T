@@ -4,6 +4,7 @@
 fabric 1.0 中有3种类型的数据存储，一种是文件系统方式的区块链数据（类似比特币），在Fabric 1.0中的区块链存储了Transaction订单读写集，而这个读写集读什么？写什么？其实就是State Database，也叫作World State。以键值对的形式存储了Chaincode中操作的业务数据。另外还有就是对历史数据和区块链索引的数据库。
 
 ![png](../images/CouchDB.png)
+> The Pic Form Network
 
 区块链是文件系统，目前不支持更改，历史数据和区块链的索引是LevelDB，也不支持更改。而State Database是直接和业务相关的，所以提供了替换数据库，当前仅支持LevelDB和可选择的CouchDB。
 
