@@ -73,24 +73,90 @@ statedb_savepoint 返回如下：
 
     3：peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C mychannel -n marbles02  -v 1.0  -c '{"Args":["init"]}' -P "OR        ('Org1MSP.member','Org2MSP.member')"
 
-    4：peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C mychannel -n marbles02  -v 1.0 -c  ' {"Args":["initMarble","marble2","red","50","tom"]}'
+    4：peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C mychannel -n marbles02  -v 1.0 -c  ' {"Args":["initMarble","marble01","red","1000","tom"]}'
 
-    5：peer chaincode query -C mychannel -n marbles02 -c  '{"Args":["readMarble","marble2"]}'
+    5：peer chaincode query -C mychannel -n marbles02 -c  '{"Args":["readMarble","marble01"]}'
       返回结果如下：
-      Query Result: {"color":"red","docType":"marble","name":"marble2","owner":"tom","size":50}
+      Query Result: {"color":"red","docType":"marble","name":"marble01","owner":"tom","size":1000}
 
 ###### 通过curl直接查询CouchDB中的数据：
 
     curl http://192.168.56.101:5984/mychannel/marbles02%00marble2
 
 返回结果如下：
-{"_id":"marbles02\u0000marble2","_rev":"1-a1844f47b9ed94294b430c9a9a6f543b","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble2","color":"red","size":50,"owner":"tom"},"version":"6:0"}
+
+    {"_id":"marbles02\u0000marble01","_rev":"1-936b03f2b57343d8376beddb48335c64","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble01","color":"red","size":1000,"owner":"tom"},"version":"20:0"}
+
+查看历史：
+
+    peer chaincode query -C mychannel -n marbles02 -c '{"Args":["getHistoryForMarble","marble01"]}'
+    返回1条记录：
+    "Value":{"docType":"marble","name":"marble01","color":"red","size":1000,"owner":"tom"}, "Timestamp":"2017-07-19 08:56:22.754146148 +0000 UTC", "IsDelete":"false"}]
+直接查询数据库：
+
+    curl http://192.168.56.101:5984/mychannel/marbles02%00marble01
+    返回如下：
+    {"_id":"marbles02\u0000marble01","_rev":"1-936b03f2b57343d8376beddb48335c64","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble01","color":"red","size":1000,"owner":"tom"},"version":"20:0"}
 
 ###### 修改数据的内容
-把green改成1000
+修改数据库把red改为black，1000改成9999
 
-    curl -X PUT http://192.168.56.101:5984/mychannel/marbles02%00marble2 -d '{"_id":"marbles02\u0000marble2","_rev":"1-a1844f47b9ed94294b430c9a9a6f543b","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble2","color":"green","size":1000,"owner":"tom"},"version":"6:0"}'
-查询数据库
-    curl http://192.168.56.101:5984/mychannel/marbles02%00marble2
-    结果返回：
-    {"_id":"marbles02\u0000marble2","_rev":"2-b5943d799854cb50c01669f884c4e28b","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble2","color":"green","size":1000,"owner":"tom"},"version":"6:0"}
+      curl -X PUT http://192.168.56.101:5984/mychannel/marbles02%00marble01 -d '{"_id":"marbles02\u0000marble2","_rev":"1-936b03f2b57343d8376beddb48335c64","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble01","color":"green","size":9999,"owner":"tom"},"version":"6:0"}'
+      返回结果如下：
+      {"ok":true,"id":"marbles02\u0000marble01","rev":"2-883288d192fa9c1ec70fc17d733a0e28"}
+
+再次查看历史（依然只有一条记录，并没有我们修改的记录，数据也没有变化）
+
+    "Value":{"docType":"marble","name":"marble01","color":"red","size":1000,"owner":"tom"}, "Timestamp":"2017-07-19 08:56:22.754146148 +0000 UTC", "IsDelete":"false"}]
+直接查询数据库
+
+    curl http://192.168.56.101:5984/mychannel/marbles02%00marble01
+    结果返回：（数据库内容已经变化）
+    {"_id":"marbles02\u0000marble01","_rev":"2-883288d192fa9c1ec70fc17d733a0e28","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble01","color":"green","size":9999,"owner":"tom"},"version":"6:0"}
+
+peer查询
+    peer chaincode query -C mychannel -n marbles02 -c '{"Args":["readMarble","marble02"]}'
+    返回结果：（链和数据库同步）
+    Query Result: {"color":"green","docType":"marble","name":"marble01","owner":"tom","size":9999}
+
+###### 进行Transaction试试（转账交易）
+
+    peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles02 -c '{"Args":["transferMarble","marble01","jerry"]}'
+    系统返回：（成功）
+    2017-07-19 09:07:15.379 UTC [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 00a Chaincode invoke successful. result: status:200
+
+再次查询（已经发生改变，交易成功）
+
+    peer chaincode query -C mychannel -n marbles02 -c '{"Args":["readMarble","marble01"]}'
+    返回结果
+    Query Result: {"color":"green","docType":"marble","name":"marble01","owner":"jerry","size":9999}
+
+直接查询数据库（交易已经记录并生效）
+
+    {"_id":"marbles02\u0000marble01","_rev":"3-7d01e3c98d30989c7b4353866720b2d0","chaincodeid":"marbles02","data":{"docType":"marble","name":"marble01","color":"green","size":9999,"owner":"jerry"},"version":"21:0"}
+
+查询历史
+
+        peer chaincode query -C mychannel -n marbles02 -c '{"Args":["getHistoryForMarble","marble01"]}'
+        返回结果
+        "Value":{"docType":"marble","name":"marble01","color":"red","size":1000,"owner":"tom"}, "Timestamp":"2017-07-19 08:56:22.754146148 +0000 UTC", "IsDelete":"false"},{"TxId":"b15e0afd4df8d8553ea35c68a69382091cd3fe319b828fa6199cd7022cee601d", "Value":{"docType":"marble","name":"marble01","color":"green","size":9999,"owner":"jerry"}, "Timestamp":"2017-07-19 09:07:15.293083849 +0000 UTC", "IsDelete":"false"}]
+
+##### 个人总结如下：
+对CouchDB数据库的更改都是有效的，并且链数据和库数据是同步完成修改的。但是区块连历史中却没有这个修改的记录。修改的数值再下一次交易会生效，而整个历史过程中，也没有找到该部分修改记录。
+
+
+### 其它命令
+
+    peer chaincode invoke -o orderer0:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles02 -c '{"Args":["initMarble","marble1","blue","35","tom"]}'
+
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles02 -c '{"Args":["transferMarble","marble2","jerry"]}'
+
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles02 -c'{"Args":["transferMarblesBasedOnColor","blue","jerry"]}'
+
+    peer chaincode invoke -o -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles02 -c '{"Args":["delete","marble1"]}'
+
+    peer chaincode query -C mychannel -n marbles02 -c '{"Args":["readMarble","marble2"]}'
+
+    root@35aa4ce0eb9f:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer chaincode query -C mychannel -n marbles02 -c '{"Args":["getHistoryForMarble","marble2"]}'
+
+    peer chaincode query -C mychannel -n marbles02 -c '{"Args":["queryMarblesByOwner","jerry"]}'
