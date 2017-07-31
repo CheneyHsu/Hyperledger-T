@@ -51,8 +51,8 @@ Setup Fabric 1.0 （SingleNode E2E）
 
 ### Make gotools
 
-    1.    cd $GOPATH/src/github.com/hyperledger/fabric/gotools/build/gopath/src/github.com/golang.org/x/
-            #if not directory , maybe use mkdir create it.
+    1.    cd $GOPATH/src/github.com/hyperledger/fabric/gotools/build/gopath/src/golang.org/x/
+            #if not directory , maybe used mkdir create it.
     2.    git clone https://github.com/golang/tools
     3.    cd /root/fabric/fabric/src/github.com/hyperledger/fabric
     4.    make gotools
