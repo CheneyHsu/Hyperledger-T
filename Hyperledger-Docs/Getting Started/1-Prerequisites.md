@@ -3,7 +3,7 @@
 安装最新的curl：CentOS-> yum  ; Ubuntu -> apt-get
 
 
-#### Docker and Docker Compose
+## Docker and Docker Compose
 
 必须安装对应平台的的docker和docker-compose 来开发 Hyperledger Fabric:
 
