@@ -1,15 +1,7 @@
 
 # Hyperledger Fabric Samples
 
-> If you are running on Windows you will want to make use of the Docker Quickstart Terminal for the upcoming terminal commands. Please visit the Prerequisites if you haven’t previously installed it.
-
->If you are using Docker Toolbox on Windows 7 or macOS, you will need to use a location under C:\Users (Windows 7) or /Users (macOS) when installing and running the samples.
-
->If you are using Docker for Mac, you will need to use a location under /Users, /Volumes, /private, or /tmp. To use a different location, please consult the Docker documentation for file sharing.
-
->If you are using Docker for Windows, please consult the Docker documentation for shared drives and use a location under one of the shared drives.
-
-Determine a location on your machine where you want to place the Hyperledger Fabric samples applications repository and open that in a terminal window. Then, execute the following commands:
+在终端执行以下命令，下载fabric-samples（示例）:
 
     git clone https://github.com/hyperledger/fabric-samples.git
     cd fabric-samples
@@ -18,32 +10,32 @@ Determine a location on your machine where you want to place the Hyperledger Fab
 
 Next, we will install the Hyperledger Fabric platform-specific binaries. This process was designed to complement the Hyperledger Fabric Samples above, but can be used independently. If you are not installing the samples above, then simply create and enter a directory into which to extract the contents of the platform-specific binaries.
 
-Please execute the following command from within the directory into which you will extract the platform-specific binaries:
+下一步，下载Hyperledger Fabric平台的特定二进制文件，这个文件是为了补充上面示，也可以单独使用。如果没有samples，可以创建一个目录来提取特定的平台内容。
+
+在目录下执行该命令:
 
     curl -sSL https://goo.gl/iX9dek | bash
 
 
->If you get an error running the above curl command, you may have too old a version of curl. Please visit the Prerequisites page for additional information on where to find the latest version.
+>如果Curl过程中出错，还请升级Curl到最新版本，不要使用旧版本的Curl.
 
-The curl command above downloads and executes a bash script that will download and extract all of the platform-specific binaries you will need to set up your network and place them into the cloned repo you created above. It retrieves four platform-specific binaries:
+Curl下载并执行脚本，该脚本将下载特定的二进制文件，检索4个特定于平台的二进制文件:
 
         cryptogen,
         configtxgen,
         configtxlator, and
         peer
 
-and places them in the bin sub-directory of the current working directory.
+将会放到当前(cd fabric-samples)`bin`目录下.
 
-You may want to add that to your PATH environment variable so that these can be picked up without fully qualifying the path to each binary. e.g.:
+添加环境变量：
 
     export PATH=<path to download location>/bin:$PATH
+> /etc/profile
+> export FABRICSAM=/home/hsukk/fabric/src/github.com/fabric-samples
+>export GOROOT=/usr/local/go
+>export PATH=$PATH:$GOROOT/bin:$FABRICSAM:/bin
 
-Finally, the script will download the Hyperledger Fabric docker images from Docker Hub into your local Docker registry and tag them as ‘latest’.
+最后脚本将下载docker容器，并在本地注册为 ‘latest’.
 
-The script lists out the Docker images installed upon conclusion.
-
-Look at the names for each image; these are the components that will ultimately comprise our Hyperledger Fabric network. You will also notice that you have two instances of the same image ID - one tagged as “x86_64-1.0.0” and one tagged as “latest”.
-
->On different architectures, the x86_64 would be replaced with the string identifying your architecture.
-
->If you have questions not addressed by this documentation, or run into issues with any of the tutorials, please visit the Still Have Questions? page for some tips on where to find additional help.
+如果是`X86_64-1.0.0`，还请tag为`latest`。

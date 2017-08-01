@@ -1,170 +1,179 @@
 # Building Your First Network
 
->These instructions have been verified to work against the version “1.0.0” tagged Docker images and the pre-compiled setup utilities within the supplied tar file. If you run these commands with images or tools from the current master branch, it is possible that you will see configuration and panic errors.
+>仅在sample中使用命令，如果使用当前主分支的图像或工具运行这些命令，您可能会看到配置和panic错误
 
-The build your first network (BYFN) scenario provisions a sample Hyperledger Fabric network consisting of two organizations, each maintaining two peer nodes, and a “solo” ordering service.
+创建第一个网络方案，维护2个`组织`，以solo模式运行，保持2个peer.
+
 ### Install prerequisites
 
-Before we begin, if you haven’t already done so, you may wish to check that you have all the Prerequisites installed on the platform(s) on which you’ll be developing blockchain applications and/or operating Hyperledger Fabric.
+开始之前，检查你的所有必须条件，在Hyperledger fabric后续可能用到的开发和操作必须条件。
 
-You will also need to download and install the Hyperledger Fabric Samples. You will notice that there are a number of samples included in the fabric-samples repository. We will be using the first-network sample. Let’s open that sub-directory now.
+下载并安装 Hyperledger Fabric Samples. 你会发现许多内容. 打开子目录，使用第一个网络示例.
 
-cd first-network
+      cd first-network
 
-Note
+该文档中提供的命令必须从克隆目录的第一个网络子目录运行，如果选择从另外一个位置运行命令，则命令将会报错。
 
-The supplied commands in this documentation MUST be run from your first-network sub-directory of the fabric-samples repository clone. If you elect to run the commands from a different location, the various provided scripts will be unable to find the binaries.
-Want to run it now?
+### 运行试试？？
 
-We provide a fully annotated script - byfn.sh - that leverages these Docker images to quickly bootstrap a Hyperledger Fabric network comprised of 4 peers representing two different organizations, and an orderer node. It will also launch a container to run a scripted execution that will join peers to a channel, deploy and instantiate chaincode and drive execution of transactions against the deployed chaincode.
+我们提供了一个完全注释的脚本byfn.sh。利用这个脚本将很快组成4个节点的网络，并且是不同组织的链接。
+同时也将利用一个容器来执行脚本，完成渠道部署，和实例化链码和进行交易。
 
-Here’s the help text for the byfn.sh script:
+ byfn.sh 帮助如下:
 
 ./byfn.sh -h
-Usage:
-  byfn.sh -m up|down|restart|generate [-c <channel name>] [-t <timeout>]
-  byfn.sh -h|--help (print this message)
+
+    Usage:
+    byfn.sh -m up|down|restart|generate [-c <channel name>] [-t <timeout>]
+    byfn.sh -h|--help (print this message)
     -m <mode> - one of 'up', 'down', 'restart' or 'generate'
-      - 'up' - bring up the network with docker-compose up
-      - 'down' - clear the network with docker-compose down
-      - 'restart' - restart the network
-      - 'generate' - generate required certificates and genesis block
+    - 'up' - bring up the network with docker-compose up
+    - 'down' - clear the network with docker-compose down
+    - 'restart' - restart the network
+    - 'generate' - generate required certificates and genesis block
     -c <channel name> - config name to use (defaults to "mychannel")
     -t <timeout> - CLI timeout duration in microseconds (defaults to 10000)
 
-Typically, one would first generate the required certificates and
-genesis block, then bring up the network. e.g.:
+通常，首先生成所需的证书和生成区块，而后提出网络，例如：
 
-  byfn.sh -m generate -c <channelname>
-  byfn.sh -m up -c <channelname>
+    byfn.sh -m generate -c <channelname>
+    byfn.sh -m up -c <channelname>
 
 If you choose not to supply a channel name, then the script will use a default name of mychannel. The CLI timeout parameter (specified with the -t flag) is an optional value; if you choose not to set it, then your CLI container will exit upon conclusion of the script.
-Generate Network Artifacts
+如果你选择不提供通道名称，mychannel将作为默认名称，Cli的超时设置是一个可选值，如果不设置它，那么脚本结束时，cli容器将退出。
 
-Ready to give it a go? Okay then! Execute the following command:
+### Generate Network Artifacts
 
-./byfn.sh -m generate
+主备好了吗？开始!
+命令如下：
 
-You will see a brief description as to what will occur, along with a yes/no command line prompt. Respond with a y to execute the described action.
+    ./byfn.sh -m generate
 
-Generating certs and genesis block for with channel 'mychannel' and CLI timeout of '10000'
-Continue (y/n)?y
-proceeding ...
-/Users/xxx/dev/fabric-samples/bin/cryptogen
+接受默认设定值，输入Y进行确认!
 
-##########################################################
-##### Generate certificates using cryptogen tool #########
-##########################################################
-org1.example.com
-2017-06-12 21:01:37.334 EDT [bccsp] GetDefault -> WARN 001 Before using BCCSP, please call InitFactories(). Falling back to bootBCCSP.
-...
+    Generating certs and genesis block for with channel 'mychannel' and CLI timeout of '10000'
+    Continue (y/n)?y
+    proceeding ...
+    /Users/xxx/dev/fabric-samples/bin/cryptogen
 
-/Users/xxx/dev/fabric-samples/bin/configtxgen
-##########################################################
-#########  Generating Orderer Genesis block ##############
-##########################################################
-2017-06-12 21:01:37.558 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
-2017-06-12 21:01:37.562 EDT [msp] getMspConfig -> INFO 002 intermediate certs folder not found at [/Users/xxx/dev/byfn/crypto-config/ordererOrganizations/example.com/msp/intermediatecerts]. Skipping.: [stat /Users/xxx/dev/byfn/crypto-config/ordererOrganizations/example.com/msp/intermediatecerts: no such file or directory]
-...
-2017-06-12 21:01:37.588 EDT [common/configtx/tool] doOutputBlock -> INFO 00b Generating genesis block
-2017-06-12 21:01:37.590 EDT [common/configtx/tool] doOutputBlock -> INFO 00c Writing genesis block
+    ##########################################################
+    ##### Generate certificates using cryptogen tool #########
+    ##########################################################
+    org1.example.com
+    2017-06-12 21:01:37.334 EDT [bccsp] GetDefault -> WARN 001 Before using BCCSP, please call InitFactories(). Falling back to bootBCCSP.
+    ...
 
-#################################################################
-### Generating channel configuration transaction 'channel.tx' ###
-#################################################################
-2017-06-12 21:01:37.634 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
-2017-06-12 21:01:37.644 EDT [common/configtx/tool] doOutputChannelCreateTx -> INFO 002 Generating new channel configtx
-2017-06-12 21:01:37.645 EDT [common/configtx/tool] doOutputChannelCreateTx -> INFO 003 Writing new channel tx
+    /Users/xxx/dev/fabric-samples/bin/configtxgen
+    ##########################################################
+    #########  Generating Orderer Genesis block ##############
+    ##########################################################
+    2017-06-12 21:01:37.558 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
+    2017-06-12 21:01:37.562 EDT [msp] getMspConfig -> INFO 002 intermediate certs folder not found at [/Users/xxx/dev/byfn/crypto-config/ordererOrganizations/example.com/msp/intermediatecerts]. Skipping.: [stat /Users/xxx/dev/byfn/crypto-config/ordererOrganizations/example.com/msp/intermediatecerts: no such file or directory]
+    ...
+    2017-06-12 21:01:37.588 EDT [common/configtx/tool] doOutputBlock -> INFO 00b Generating genesis block
+    2017-06-12 21:01:37.590 EDT [common/configtx/tool] doOutputBlock -> INFO 00c Writing genesis block
 
-#################################################################
-#######    Generating anchor peer update for Org1MSP   ##########
-#################################################################
-2017-06-12 21:01:37.674 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
-2017-06-12 21:01:37.678 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 002 Generating anchor peer update
-2017-06-12 21:01:37.679 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 003 Writing anchor peer update
+    #################################################################
+    ### Generating channel configuration transaction 'channel.tx' ###
+    #################################################################
+    2017-06-12 21:01:37.634 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
+    2017-06-12 21:01:37.644 EDT [common/configtx/tool] doOutputChannelCreateTx -> INFO 002 Generating new channel configtx
+    2017-06-12 21:01:37.645 EDT [common/configtx/tool] doOutputChannelCreateTx -> INFO 003 Writing new channel tx
 
-#################################################################
-#######    Generating anchor peer update for Org2MSP   ##########
-#################################################################
-2017-06-12 21:01:37.700 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
-2017-06-12 21:01:37.704 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 002 Generating anchor peer update
-2017-06-12 21:01:37.704 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 003 Writing anchor peer update
+    #################################################################
+    #######    Generating anchor peer update for Org1MSP   ##########
+    #################################################################
+    2017-06-12 21:01:37.674 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
+    2017-06-12 21:01:37.678 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 002 Generating anchor peer update
+    2017-06-12 21:01:37.679 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 003 Writing anchor peer update
 
-This first step generates all of the certificates and keys for all our various network entities, the genesis block used to bootstrap the ordering service, and a collection of configuration transactions required to configure a Channel.
-Bring Up the Network
-
-Next, you can bring the network up with the following command:
-
-./byfn.sh -m up
-
-Once again, you will be prompted as to whether you wish to continue or abort. Respond with a y:
-
-Starting with channel 'mychannel' and CLI timeout of '10000'
-Continue (y/n)?y
-proceeding ...
-Creating network "net_byfn" with the default driver
-Creating peer0.org1.example.com
-Creating peer1.org1.example.com
-Creating peer0.org2.example.com
-Creating orderer.example.com
-Creating peer1.org2.example.com
-Creating cli
+    #################################################################
+    #######    Generating anchor peer update for Org2MSP   ##########
+    #################################################################
+    2017-06-12 21:01:37.700 EDT [common/configtx/tool] main -> INFO 001 Loading configuration
+    2017-06-12 21:01:37.704 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 002 Generating anchor peer update
+    2017-06-12 21:01:37.704 EDT [common/configtx/tool] doOutputAnchorPeersUpdate -> INFO 003 Writing anchor peer update
 
 
- ____    _____      _      ____    _____
-/ ___|  |_   _|    / \    |  _ \  |_   _|
-\___ \    | |     / _ \   | |_) |   | |
- ___) |   | |    / ___ \  |  _ <    | |
-|____/    |_|   /_/   \_\ |_| \_\   |_|
 
-Channel name : mychannel
-Creating channel...
+第一步为我们的所有网络实体生成所有证书和密钥，用于引导订单服务的区块生成，以及配置通道所需的配置事务集合。
 
-The logs will continue from there. This will launch all of the containers, and then drive a complete end-to-end application scenario. Upon successful completion, it should report the following in your terminal window:
+### Bring Up the Network
 
-2017-05-16 17:08:01.366 UTC [msp] GetLocalMSP -> DEBU 004 Returning existing local MSP
-2017-05-16 17:08:01.366 UTC [msp] GetDefaultSigningIdentity -> DEBU 005 Obtaining default signing identity
-2017-05-16 17:08:01.366 UTC [msp/identity] Sign -> DEBU 006 Sign: plaintext: 0AB1070A6708031A0C08F1E3ECC80510...6D7963631A0A0A0571756572790A0161
-2017-05-16 17:08:01.367 UTC [msp/identity] Sign -> DEBU 007 Sign: digest: E61DB37F4E8B0D32C9FE10E3936BA9B8CD278FAA1F3320B08712164248285C54
-Query Result: 90
-2017-05-16 17:08:15.158 UTC [main] main -> INFO 008 Exiting.....
-===================== Query on PEER3 on channel 'mychannel' is successful =====================
+使用以下命令启动网络
 
-===================== All GOOD, BYFN execution completed =====================
+    ./byfn.sh -m up
+
+再一次回答 y进行确认默认的设定值.
+
+    Starting with channel 'mychannel' and CLI timeout of '10000'
+    Continue (y/n)?y
+    proceeding ...
+    Creating network "net_byfn" with the default driver
+    Creating peer0.org1.example.com
+    Creating peer1.org1.example.com
+    Creating peer0.org2.example.com
+    Creating orderer.example.com
+    Creating peer1.org2.example.com
+    Creating cli
 
 
- _____   _   _   ____
-| ____| | \ | | |  _ \
-|  _|   |  \| | | | | |
-| |___  | |\  | | |_| |
-|_____| |_| \_| |____/
+     ____    _____      _      ____    _____
+    / ___|  |_   _|    / \    |  _ \  |_   _|
+    \___ \    | |     / _ \   | |_) |   | |
+     ___) |   | |    / ___ \  |  _ <    | |
+    |____/    |_|   /_/   \_\ |_| \_\   |_|
 
-You can scroll through these logs to see the various transactions. If you don’t get this result, then jump down to the Troubleshooting section and let’s see whether we can help you discover what went wrong.
-Bring Down the Network
+    Channel name : mychannel
+    Creating channel...
 
-Finally, let’s bring it all down so we can explore the network setup one step at a time. The following will kill your containers, remove the crypto material and four artifacts, and delete the chaincode images from your Docker Registry:
+日志还在继续.这些容器会被启动，完成一个端到端的场景（E2E），完成后，将会有如下报告：
 
-./byfn.sh -m down
+    2017-05-16 17:08:01.366 UTC [msp] GetLocalMSP -> DEBU 004 Returning existing local MSP
+    2017-05-16 17:08:01.366 UTC [msp] GetDefaultSigningIdentity -> DEBU 005 Obtaining default signing identity
+    2017-05-16 17:08:01.366 UTC [msp/identity] Sign -> DEBU 006 Sign: plaintext: 0AB1070A6708031A0C08F1E3ECC80510...6D7963631A0A0A0571756572790A0161
+    2017-05-16 17:08:01.367 UTC [msp/identity] Sign -> DEBU 007 Sign: digest: E61DB37F4E8B0D32C9FE10E3936BA9B8CD278FAA1F3320B08712164248285C54
+    Query Result: 90
+    2017-05-16 17:08:15.158 UTC [main] main -> INFO 008 Exiting.....
+    ===================== Query on PEER3 on channel 'mychannel' is successful =====================
 
-Once again, you will be prompted to continue, respond with a y:
+    ===================== All GOOD, BYFN execution completed =====================
 
-Stopping with channel 'mychannel' and CLI timeout of '10000'
-Continue (y/n)?y
-proceeding ...
-WARNING: The CHANNEL_NAME variable is not set. Defaulting to a blank string.
-WARNING: The TIMEOUT variable is not set. Defaulting to a blank string.
-Removing network net_byfn
-468aaa6201ed
-...
-Untagged: dev-peer1.org2.example.com-mycc-1.0:latest
-Deleted: sha256:ed3230614e64e1c83e510c0c282e982d2b06d148b1c498bbdcc429e2b2531e91
-...
 
-If you’d like to learn more about the underlying tooling and bootstrap mechanics, continue reading. In these next sections we’ll walk through the various steps and requirements to build a fully-functional Hyperledger Fabric network.
-Crypto Generator
+     _____   _   _   ____
+    | ____| | \ | | |  _ \
+    |  _|   |  \| | | | | |
+    | |___  | |\  | | |_| |
+    |_____| |_| \_| |____/
 
-We will use the cryptogen tool to generate the cryptographic material (x509 certs) for our various network entities. These certificates are representative of identities, and they allow for sign/verify authentication to take place as our entities communicate and transact.
-How does it work?
+可以使用滚动来查看日志和各种事物，如果没有这个结果，那么到故障分析部分，让我们看看能否发现什么问题。
+
+### Bring Down the Network
+
+最后清楚所有容器和文件，还原到启动之前的状态。
+
+    ./byfn.sh -m down
+
+在一次使用y确认默认的设定值:
+
+    Stopping with channel 'mychannel' and CLI timeout of '10000'
+    Continue (y/n)?y
+    proceeding ...
+    WARNING: The CHANNEL_NAME variable is not set. Defaulting to a blank string.
+    WARNING: The TIMEOUT variable is not set. Defaulting to a blank string.
+    Removing network net_byfn
+    468aaa6201ed
+    ...
+    Untagged: dev-peer1.org2.example.com-mycc-1.0:latest
+    Deleted: sha256:ed3230614e64e1c83e510c0c282e982d2b06d148b1c498bbdcc429e2b2531e91
+    ...
+
+如果你想学习更多东西，还请继续往下阅读，将会分解这些步骤的组成和使用.
+### Crypto Generator
+
+使用cryptogen进行证书生成（X509证书），这些证书是身份的代表，将允许在我们的实体通讯和处理时进行签名和身份验证。
+
+### How does it work?
 
 Cryptogen consumes a file - crypto-config.yaml - that contains the network topology and allows us to generate a set of certificates and keys for both the Organizations and the components that belong to those Organizations. Each Organization is provisioned a unique root certificate (ca-cert) that binds specific components (peers and orderers) to that Org. By assigning each Organization a unique CA certificate, we are mimicking a typical network where a participating Member would use its own Certificate Authority. Transactions and communications within Hyperledger Fabric are signed by an entity’s private key (keystore), and then verified by means of a public key (signcerts).
 
