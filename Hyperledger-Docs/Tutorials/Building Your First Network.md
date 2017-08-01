@@ -175,39 +175,41 @@ If you choose not to supply a channel name, then the script will use a default n
 
 ### How does it work?
 
-Cryptogen consumes a file - crypto-config.yaml - that contains the network topology and allows us to generate a set of certificates and keys for both the Organizations and the components that belong to those Organizations. Each Organization is provisioned a unique root certificate (ca-cert) that binds specific components (peers and orderers) to that Org. By assigning each Organization a unique CA certificate, we are mimicking a typical network where a participating Member would use its own Certificate Authority. Transactions and communications within Hyperledger Fabric are signed by an entity’s private key (keystore), and then verified by means of a public key (signcerts).
+cryptogen 元素来源于 crypto-config.yaml，
+该文件包含网络拓扑，允许我们为范围内包含的组织和组件生成证书和密钥。每个组织都提供一个独立的根证书（CA证书），结合这个组织特定的组件 (peers and orderers)，通过给每个组织分配一个唯一的CA证书，我们模拟了一个典型网络，其中一个参与成员将使用它自己的授权证书在Hyperledger中进行通讯交易，并且通信是由一个实体的私钥签名，然后通过公钥进行验证。
 
-You will notice a count variable within this file. We use this to specify the number of peers per Organization; in our case there are two peers per Org. We won’t delve into the minutiae of x.509 certificates and public key infrastructure right now. If you’re interested, you can peruse these topics on your own time.
+该文件中有一个计数变量，我们将使用这个数值来指定每个组织中的peers，在我们的例子中，每个组织有2个peers，我们不去深入讨论x509和公钥的基础知识，如有你有兴趣，可以去参考其他主题。
 
-Before running the tool, let’s take a quick look at a snippet from the crypto-config.yaml. Pay specific attention to the “Name”, “Domain” and “Specs” parameters under the OrdererOrgs header:
+运行工具之前，让我们分析一下crypto-config.yaml。特别注意“Name”, “Domain” and “Specs” :
 
-OrdererOrgs:
-#---------------------------------------------------------
-# Orderer
-# --------------------------------------------------------
-- Name: Orderer
-  Domain: example.com
-  # ------------------------------------------------------
-  # "Specs" - See PeerOrgs below for complete description
-# -----------------------------------------------------
-  Specs:
-    - Hostname: orderer
-# -------------------------------------------------------
-# "PeerOrgs" - Definition of organizations managing peer nodes
-# ------------------------------------------------------
-PeerOrgs:
-# -----------------------------------------------------
-# Org1
-# ----------------------------------------------------
-- Name: Org1
-  Domain: org1.example.com
+    OrdererOrgs:
+    #---------------------------------------------------------
+    # Orderer
+    # --------------------------------------------------------
+    - Name: Orderer
+      Domain: example.com
+      # ------------------------------------------------------
+      # "Specs" - See PeerOrgs below for complete description
+    # -----------------------------------------------------
+      Specs:
+        - Hostname: orderer
+    # -------------------------------------------------------
+    # "PeerOrgs" - Definition of organizations managing peer nodes
+    # ------------------------------------------------------
+    PeerOrgs:
+    # -----------------------------------------------------
+    # Org1
+    # ----------------------------------------------------
+    - Name: Org1
+      Domain: org1.example.com
 
-The naming convention for a network entity is as follows - “{{.Hostname}}.{{.Domain}}”. So using our ordering node as a reference point, we are left with an ordering node named - orderer.example.com that is tied to an MSP ID of Orderer. This file contains extensive documentation on the definitions and syntax. You can also refer to the Membership Service Providers (MSP) documentation for a deeper dive on MSP.
+网络命名格式约定为 “{{.Hostname}}.{{.Domain}}”. 所以按约定命名约定唯一的MSP ID为orderer.example.com. 这个文档包含大量的定义和语法，可以参考程序提供（MSP）文档来深入了解
 
-After we run the cryptogen tool, the generated certificates and keys will be saved to a folder titled crypto-config.
-Configuration Transaction Generator
+在我们运行cryptogen工具生成的证书和密钥将被保存到一个名为crypto-config的文件夹中.
 
-The configtxgen tool is used to create four configuration artifacts:
+### Configuration Transaction Generator
+
+ `configtxgen` 工具用于创建4个组件:
 
         orderer genesis block,
         channel channel configuration transaction,
