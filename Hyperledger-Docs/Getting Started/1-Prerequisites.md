@@ -1,27 +1,19 @@
 ## Install cURL
 
-Download the latest version of the cURL tool if it is not already installed or if you get errors running the curl commands from the documentation.
+安装最新的curl：CentOS-> yum  ; Ubuntu -> apt-get
 
->Note
 
->If you’re on Windows please see the specific note on Windows extras below.
+#### Docker and Docker Compose
 
-## Docker and Docker Compose
+必须安装对应平台的的docker和docker-compose 来开发 Hyperledger Fabric:
 
-You will need the following installed on the platform on which you will be operating, or developing on (or for), Hyperledger Fabric:
+* MacOSX, *nix, or Windows 10: Docker版本最低 17.03.0-ce 或更高.
 
-* MacOSX, *nix, or Windows 10: Docker Docker version 17.03.0-ce or greater is required.
-* Older versions of Windows: Docker Toolbox - again, Docker version Docker 17.03.0-ce or greater is required.
-
-You can check the version of Docker you have installed with the following command from a terminal prompt:
+可以使用如下命令在终端进行检查:
 
     docker --version
 
->Note
-
->Installing Docker for Mac or Windows, or Docker Toolbox will also install Docker Compose. If you already had Docker installed, you should check that you have Docker Compose version 1.8 or greater installed. If not, we recommend that you install a more recent version of Docker.
-
-You can check the version of Docker Compose you have installed with the following command from a terminal prompt:
+可以使用如下命令在终端进行检查:
 
     docker-compose --version
 
