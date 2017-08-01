@@ -10,6 +10,8 @@
 
 2017-07-27 Complete CouchDB
 
-2017-07-28 Complete blockchain-monitoring
+2017-07-28 Complete blockchain-monitoring (waiting saadd)
 
 2017-07-28 Complete fabric-sdk-go & cli sample.
+
+2017-08-01 Complete single-node-E2E-ubuntu1604.
