@@ -211,10 +211,10 @@ cryptogen 元素来源于 crypto-config.yaml，
 
  `configtxgen` 工具用于创建4个组件:
 
-        orderer genesis block,
-        channel channel configuration transaction,
-        and two anchor peer transactions - one for each Peer Org.
-
+        * orderer genesis block,
+        * channel channel configuration transaction,
+        * and two anchor peer transactions - one for each Peer Org.
+==
 Please see Channel Configuration (configtxgen) for a complete description of the use of this tool.
 
 The orderer block is the Genesis Block for the ordering service, and the channel transaction file is broadcast to the orderer at Channel creation time. The anchor peer transactions, as the name might suggest, specify each Org’s Anchor Peer on this channel.
