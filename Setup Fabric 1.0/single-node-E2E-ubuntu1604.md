@@ -14,18 +14,17 @@
 ### System environment preparation
     1. sudo apt-get install curl vim
     2. sudo apt-get install git
-    3. sudo apt-get install golang
-    4. curl -sSL https://get.daocloud.io/docker | sh
-    5. sudo usermod -aG docker hsukk;newgrp - docker
-    6. sudo vi /etc/default/docker
-    7. DOCKER_OPTS="$DOCKER_OPTS -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --api-cors-header='*'"
-    8. curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://5c609c19.m.daocloud.io
-    9. sudo service docker restart
-    10. sudo systemctl enable docker.service
-    11. sudo apt-get install python-pip
-    12. curl -L https://get.daocloud.io/docker/compose/releases/download/1.10.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-    13. sudo mv ~/docker-compose /usr/local/bin/docker-compose
-    14. chmod +x /usr/local/bin/docker-compose
+    3. curl -sSL https://get.daocloud.io/docker | sh
+    4. sudo usermod -aG docker hsukk;newgrp - docker
+    5. sudo vi /etc/default/docker
+    6. DOCKER_OPTS="$DOCKER_OPTS -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --api-cors-header='*'"
+    7. curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://5c609c19.m.daocloud.io
+    8. sudo service docker restart
+    9. sudo systemctl enable docker.service
+    10. sudo apt-get install python-pip
+    11. curl -L https://get.daocloud.io/docker/compose/releases/download/1.10.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+    12. sudo mv ~/docker-compose /usr/local/bin/docker-compose
+    13. chmod +x /usr/local/bin/docker-compose
 ### Setup GoLang
 
     1.    wget https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
