@@ -353,9 +353,11 @@ Start your network:
 
     peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02
 
-接下来,初始化channel 上的链码,通过链码集初始化链码,并且设置初始化参数,注意`-p`参数, 交易的策略,指定交易的
+接下来,初始化channel 上的链码,通过链码集初始化链码,并且设置初始化参数,注意`-p`参数, 交易的背书策略对于一个交易的验证.
 
-In the command below you’ll notice that we specify our policy as -P "OR ('Org0MSP.member','Org1MSP.member')". This means that we need “endorsement” from a peer belonging to Org1 OR Org2 (i.e. only one endorsement). If we changed the syntax to AND then we would need two endorsements.
+下面的命令中,指定背书策略为
+  -P "OR ('Org0MSP.member','Org1MSP.member')".
+  This means that we need “endorsement” from a peer belonging to Org1 OR Org2 (i.e. only one endorsement). If we changed the syntax to AND then we would need two endorsements.
 
 # be sure to replace the $CHANNEL_NAME environment variable
 # if you did not install your chaincode with a name of mycc, then modify that argument as well
