@@ -357,56 +357,58 @@ Start your network:
 
 下面的命令中,指定背书策略为
   -P "OR ('Org0MSP.member','Org1MSP.member')".
-  This means that we need “endorsement” from a peer belonging to Org1 OR Org2 (i.e. only one endorsement). If we changed the syntax to AND then we would need two endorsements.
+  意义是需要背书在Org1 和 Org2 的每个peer。可以改变下语法试着需要2个背书`AND`
 
-# be sure to replace the $CHANNEL_NAME environment variable
-# if you did not install your chaincode with a name of mycc, then modify that argument as well
+        # be sure to replace the $CHANNEL_NAME environment variable
+        # if you did not install your chaincode with a name of mycc, then modify that argument as well
 
-peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a", "100", "b","200"]}' -P "OR ('Org1MSP.member','Org2MSP.member')"
+        peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a", "100", "b","200"]}' -P "OR ('Org1MSP.member','Org2MSP.member')"
 
-See the endorsement policies documentation for more details on policy implementation.
-Query
+>详见背书策略！
+## Query
 
-Let’s query for the value of a to make sure the chaincode was properly instantiated and the state DB was populated. The syntax for query is as follows:
+我们查询一个正确实例化的链码，通过state DB，语法如下：
 
-# be sure to set the -C and -n flags appropriately
+        # be sure to set the -C and -n flags appropriately
 
-peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}'
+        peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}'
 
-Invoke
+## Invoke
 
-Now let’s move 10 from a to b. This transaction will cut a new block and update the state DB. The syntax for invoke is as follows:
+现在，我们从将10从A移动到B，这个事务将生成一个新的块并更新状态数据库，语法如下：
 
-# be sure to set the -C and -n flags appropriately
+        # be sure to set the -C and -n flags appropriately
 
-peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}'
+        peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem  -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}'
 
-Query
+## Query
 
-Let’s confirm that our previous invocation executed properly. We initialized the key a with a value of 100 and just removed 10 with our previous invocation. Therefore, a query against a should reveal 90. The syntax for query is as follows.
+确认并查询记录，原有A是100.
 
-# be sure to set the -C and -n flags appropriately
+        # be sure to set the -C and -n flags appropriately
 
-peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}'
+        peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}'
 
 We should see the following:
 
-Query Result: 90
+        Query Result: 90
 
-Feel free to start over and manipulate the key value pairs and subsequent invocations.
-What’s happening behind the scenes?
 
-Note
+## What’s happening behind the scenes?
+`./byfn.sh -m down`清除所有环境和记录
 
-These steps describe the scenario in which script.sh is not commented out in the docker-compose-cli.yaml file. Clean your network with ./byfn.sh -m down and ensure this command is active. Then use the same docker-compose prompt to launch your network again
+* 脚本script.sh安装在`CLI`容器内，通过`CreateChanel`命令和频道名称以及`channel.tx`文件来做channel配置。
 
-    A script - script.sh - is baked inside the CLI container. The script drives the createChannel command against the supplied channel name and uses the channel.tx file for channel configuration.
-    The output of createChannel is a genesis block - <your_channel_name>.block - which gets stored on the peers’ file systems and contains the channel configuration specified from channel.tx.
-    The joinChannel command is exercised for all four peers, which takes as input the previously generated genesis block. This command instructs the peers to join <your_channel_name> and create a chain starting with <your_channel_name>.block.
-    Now we have a channel consisting of four peers, and two organizations. This is our TwoOrgsChannel profile.
-    peer0.org1.example.com and peer1.org1.example.com belong to Org1; peer0.org2.example.com and peer1.org2.example.com belong to Org2
-    These relationships are defined through the crypto-config.yaml and the MSP path is specified in our docker compose.
-    The anchor peers for Org1MSP (peer0.org1.example.com) and Org2MSP (peer0.org2.example.com) are then updated. We do this by passing the Org1MSPanchors.tx and Org2MSPanchors.tx artifacts to the ordering service along with the name of our channel.
+* CreateChannel会创建创世块`genesis block` - `<your_channel_name>.block` -存储在peer容器的文件系统上，通过容器channel配置文件`channel.tx`指定
+ 
+* 所有的 peers都需要执行join，指定 <your_channel_name> 和 <your_channel_name>.block.
+* 现在由4个perr组成channel和2个组织，2个组织的配置文件如下<TwoOrgsChannel>.
+        
+        peer0.org1.example.com and peer1.org1.example.com belong to Org1; peer0.org2.example.com and peer1.org2.example.com belong to Org2
+* 这些关系都在`crypto-config.yaml`定义以及`MSP`路径在docker compose中指定.
+
+* 
+* The anchor peers for Org1MSP (peer0.org1.example.com) and Org2MSP (peer0.org2.example.com) are then updated. We do this by passing the Org1MSPanchors.tx and Org2MSPanchors.tx artifacts to the ordering service along with the name of our channel.
     A chaincode - chaincode_example02 - is installed on peer0.org1.example.com and peer0.org2.example.com
     The chaincode is then “instantiated” on peer0.org2.example.com. Instantiation adds the chaincode to the channel, starts the container for the target peer, and initializes the key value pairs associated with the chaincode. The initial values for this example are [“a”,”100” “b”,”200”]. This “instantiation” results in a container by the name of dev-peer0.org2.example.com-mycc-1.0 starting.
     The instantiation also passes in an argument for the endorsement policy. The policy is defined as -P "OR    ('Org1MSP.member','Org2MSP.member')", meaning that any transaction must be endorsed by a peer tied to Org1 or Org2.
