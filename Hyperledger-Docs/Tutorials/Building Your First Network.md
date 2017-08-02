@@ -215,144 +215,145 @@ cryptogen 元素来源于 crypto-config.yaml，
         * channel channel configuration transaction,
         * and two anchor peer transactions - one for each Peer Org.
 
-Please see Channel Configuration (configtxgen) for a complete description of the use of this tool.
+参考channel 配置文件 configtxgen
 
-The orderer block is the Genesis Block for the ordering service, and the channel transaction file is broadcast to the orderer at Channel creation time. The anchor peer transactions, as the name might suggest, specify each Org’s Anchor Peer on this channel.
-How does it work?
+块的排序是在创世块之后由排序服务支持，在通道创建时的交易事物文件会广播到orderer。正如名称建议，peer节点的交易将在这个通道上指定每个Org上的peer节点。
 
-Configtxgen consumes a file - configtx.yaml - that contains the definitions for the sample network. There are three members - one Orderer Org (OrdererOrg) and two Peer Orgs (Org1 & Org2) each managing and maintaining two peer nodes. This file also specifies a consortium - SampleConsortium - consisting of our two Peer Orgs. Pay specific attention to the “Profiles” section at the top of this file. You will notice that we have two unique headers. One for the orderer genesis block - TwoOrgsOrdererGenesis - and one for our channel - TwoOrgsChannel.
+### How does it work?
 
-These headers are important, as we will pass them in as arguments when we create our artifacts.
+Configtxgen 元素来源于`configtx.yaml`文件，它包含示例网络的定义， 有三个成员，一个是orderer（Org （OrdererOrg））和2个peer节点，分布在Org1和Org2中。
+该文件还指定了一个共同体`SampleConsortium` ，有2个对等的组织组成.特别注意文件的“Profiles”部分， 你会注意到有2处不同，一是orderer的创世块`TwoOrgsOrdererGenesis`,另外一个是channel部分`TwoOrgsChannel`
 
-Note
+这些都和你重要，因为创建时这些都将作为参数被传递。
 
-Notice that our SampleConsortium is defined in the system-level profile and then referenced by our channel-level profile. Channels exist within the purview of a consortium, and all consortia must be defined in the scope of the network at large.
+>Notice that our SampleConsortium is defined in the system-level profile and then referenced by our channel-level profile. Channels exist within the purview of a consortium, and all consortia must be defined in the scope of the network at large.
 
-This file also contains two additional specifications that are worth noting. Firstly, we specify the anchor peers for each Peer Org (peer0.org1.example.com & peer0.org2.example.com). Secondly, we point to the location of the MSP directory for each member, in turn allowing us to store the root certificates for each Org in the orderer genesis block. This is a critical concept. Now any network entity communicating with the ordering service can have its digital signature verified.
-Run the tools
+这个文件包含2个比较值得关注的规范，首先需要为每个peers指定org(peer0.org1.example.com & peer0.org2.example.com)。
+其次我们为每个成员指定MSP的目录，相应的允许存储的根证书在每个组织的创世块中，这是个关键的概念，现在，任何与ordering service通信的网络实体都可以对其数字签名进行验证。
 
-You can manually generate the certificates/keys and the various configuration artifacts using the configtxgen and cryptogen commands. Alternately, you could try to adapt the byfn.sh script to accomplish your objectives.
-Manually generate the artifacts
+### Run the tools
 
-You can refer to the generateCerts function in the byfn.sh script for the commands necessary to generate the certificates that will be used for your network configuration as defined in the crypto-config.yaml file. However, for the sake of convenience, we will also provide a reference here.
+你可以手动生成证书和秘钥和配置，使用onfigtxgen and cryptogen 命令，或者你可以尝试修改`byfn.sh `.
 
-First let’s run the cryptogen tool. Our binary is in the bin directory, so we need to provide the relative path to where the tool resides.
+你可以为要生成的证书配置到`crypto-config.yaml`文件中，定义到`byfn.sh`脚本`generateCerts`功能.仅作参考
 
-../bin/cryptogen generate --config=./crypto-config.yaml
 
-You will likely see the following warning. It’s innocuous, ignore it:
+首先来运行`cryptogen tool`. 执行文件在`bin`目录, 所以需要提供文件的相对路径.
 
-[bccsp] GetDefault -> WARN 001 Before using BCCSP, please call InitFactories(). Falling back to bootBCCSP.
+    ../bin/cryptogen generate --config=./crypto-config.yaml
 
-Next, we need to tell the configtxgen tool where to look for the configtx.yaml file that it needs to ingest. We will tell it look in our present working directory:
 
-First, we need to set an environment variable to specify where configtxgen should look for the configtx.yaml configuration file:
+你将看到如下警告输出,这些警告没有影响,忽略掉..
+
+    [bccsp] GetDefault -> WARN 001 Before using BCCSP, please call InitFactories(). Falling back to bootBCCSP.
+
+接下来需要告诉`configtxgen`工具哪里找到`onfigtx.yaml`,
+
+
+ 为`configtx.yaml`设置环境变量
 
 export FABRIC_CFG_PATH=$PWD
 
-Then, we’ll invoke the configtxgen tool which will create the orderer genesis block:
+使用`configtxgen` 创建创始块:
 
-../bin/configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
+    ../bin/configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
 
-You can ignore the log warnings regarding intermediate certificates, certificate revocation lists (crls) and MSP configurations. We are not using any of those in this sample network.
+sample network 中没有使用这些示例,你可以忽略掉这些警告日志.
 
-Next, we need to create the channel transaction artifact. Be sure to replace $CHANNEL_NAME or set CHANNEL_NAME as an environment variable that can be used throughout these instructions:
+接下来,我们来创建channel,需要设置channel_name的环境变量
 
-export CHANNEL_NAME=mychannel
+    export CHANNEL_NAME=mychannel
 
-# this file contains the definitions for our sample channel
-../bin/configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
+>this file contains the definitions for our sample channel
+    ../bin/configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
 
-Next, we will define the anchor peer for Org1 on the channel that we are constructing. Again, be sure to replace $CHANNEL_NAME or set the environment variable for the following commands:
+接下来,我们将定义Org1,注意环境变量Channel_name.
 
-../bin/configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
+    ../bin/configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
 
-Now, we will define the anchor peer for Org2 on the same channel:
+现在定义Org2:
 
-../bin/configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
+    ../bin/configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
 
-Start the network
+### Start the network
 
-We will leverage a docker-compose script to spin up our network. The docker-compose file references the images that we have previously downloaded, and bootstraps the orderer with our previously generated genesis.block.
+利用docker-compose 脚本启动我们的网络.docker-compose文件将会下载docker images并启动orderer以及创建创世块.
 
-working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-# command: /bin/bash -c './scripts/script.sh ${CHANNEL_NAME}; sleep $TIMEOUT'
-volumes
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash -c './scripts/script.sh ${CHANNEL_NAME}; sleep $TIMEOUT'
+    volumes
 
-If left uncommented, that script will exercise all of the CLI commands when the network is started, as we describe in the What’s happening behind the scenes? section. However, we want to go through the commands manually in order to expose the syntax and functionality of each call.
+如果没有进行注释,脚本将执行所有命令,并且为我们描述后台日志记录,但是我们希望手动执行命令,以了解每个调用语法和功能.
 
-Pass in a moderately high value for the TIMEOUT variable (specified in seconds); otherwise the CLI container, by default, will exit after 60 seconds.
+超时变量,Cli容器退出时间
 
 Start your network:
 
-CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=<pick_a_value> docker-compose -f docker-compose-cli.yaml up -d
+    CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=<pick_a_value> docker-compose -f docker-compose-cli.yaml up -d
 
-If you want to see the realtime logs for your network, then do not supply the -d flag. If you let the logs stream, then you will need to open a second terminal to execute the CLI calls.
-Environment variables
+如果你想实时查看日志,则不要`-d`参数,让日志打印在终端,但是需要打开第二个终端来执行cli.
 
-For the following CLI commands against peer0.org1.example.com to work, we need to preface our commands with the four environment variables given below. These variables for peer0.org1.example.com are baked into the CLI container, therefore we can operate without passing them. HOWEVER, if you want to send calls to other peers or the orderer, then you will need to provide these values accordingly. Inspect the docker-compose-base.yaml for the specific paths:
+### Environment variables
 
-# Environment variables for PEER0
+下面使用CLI对peer0.org1.example.com进行操作, 我们需要用下面给出四个环境变量来描述我们的命令 . 环境变量在peer0.org1.example.com 容器中,然而, 如果你想发送指令去其他的peers或者 orderer, 必须事先准备环境变量. 检查 docker-compose-base.yaml 文件:
 
-CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-CORE_PEER_ADDRESS=peer0.org1.example.com:7051
-CORE_PEER_LOCALMSPID="Org1MSP"
-CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+    # Environment variables for PEER0
 
-Create & Join Channel
+    CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+    CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+    CORE_PEER_LOCALMSPID="Org1MSP"
+    CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 
-We will enter the CLI container using the docker exec command:
+### Create & Join Channel
 
-docker exec -it cli bash
+使用如下指令进入CLI容器
 
-If successful you should see the following:
+    docker exec -it cli bash
 
-root@0d78bb69300d:/opt/gopath/src/github.com/hyperledger/fabric/peer#
+如果成功将显示如下:
 
-Recall that we used the configtxgen tool to generate a channel configuration artifact - channel.tx. We are going to pass in this artifact to the orderer as part of the create channel request.
+    root@0d78bb69300d:/opt/gopath/src/github.com/hyperledger/fabric/peer#
 
-Note
 
-Notice the -- cafile that we pass as part of this command. It is the local path to the orderer’s root cert, allowing us to verify the TLS handshake.
+记得前面利用configtxgen加工过 channel.tx 文件，这个文件将是我们创建channel的必要一部分。
 
-We specify our channel name with the -c flag and our channel configuration transaction with the -f flag. In this case it is channel.tx, however you can mount your own configuration transaction with a different name.
+--cafile 参数做为命令的一部分，必须要保障使用根证书，完成TLS握手。
 
-export CHANNEL_NAME=mychannel
+使用-c参数指定channel名称，使用-f指定channel.tx
 
-# the channel.tx file is mounted in the channel-artifacts directory within your CLI container
-# as a result, we pass the full path for the file
-# we also pass the path for the orderer ca-cert in order to verify the TLS handshake
-# be sure to replace the $CHANNEL_NAME variable appropriately
+    export CHANNEL_NAME=mychannel
 
-peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+    # the channel.tx file is mounted in the channel-artifacts directory within your CLI container
+    # as a result, we pass the full path for the file
+    # we also pass the path for the orderer ca-cert in order to verify the TLS handshake
+    # be sure to replace the $CHANNEL_NAME variable appropriately
 
-This command returns a genesis block - <channel-ID.block> - which we will use to join the channel. It contains the configuration information specified in channel.tx.
+    peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
-Note
+这个命令将创建创世块<channel-ID.block>
+加入这个频道，配置信息包含在channel.tx.
 
-You will remain in the CLI container for the remainder of these manual commands. You must also remember to preface all commands with the corresponding environment variables when targeting a peer other than peer0.org1.example.com.
+将 peer0.org1.example.com 加入channel.
 
-Now let’s join peer0.org1.example.com to the channel.
+    # By default, this joins ``peer0.org1.example.com`` only
+    # the <channel-ID.block> was returned by the previous command
 
-# By default, this joins ``peer0.org1.example.com`` only
-# the <channel-ID.block> was returned by the previous command
+     peer channel join -b <channel-ID.block>
 
- peer channel join -b <channel-ID.block>
 
-You can make other peers join the channel as necessary by making appropriate changes in the four environment variables.
-Install & Instantiate Chaincode
+设置4个环境变量可以使其他的perr加入channel.
 
-Note
+### Install & Instantiate Chaincode
 
-We will utilize a simple existing chaincode. To learn how to write your own chaincode, see the Chaincode for Developers tutorial.
+我们将使用一个简单的链码进行测试，如何编写链码，参考后面的教程.
 
-Applications interact with the blockchain ledger through chaincode. As such we need to install the chaincode on every peer that will execute and endorse our transactions, and then instantiate the chaincode on the channel.
+应用程序的交互通过区块链分类的链码,因此我们需要对在每个节点去部署链码,然后初始化链码,来支持交易.
 
-First, install the sample Go code onto one of the four peer nodes. This command places the source code onto our peer’s filesystem.
+第一步,安装简单的go code在你的4个peer nodes上,这些源码在peer的文件系统上.
 
-peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02
+    peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02
 
-Next, instantiate the chaincode on the channel. This will initialize the chaincode on the channel, set the endorsement policy for the chaincode, and launch a chaincode container for the targeted peer. Take note of the -P argument. This is our policy where we specify the required level of endorsement for a transaction against this chaincode to be validated.
+接下来,初始化channel 上的链码,通过链码集初始化链码,并且设置初始化参数,注意`-p`参数, 交易的策略,指定交易的
 
 In the command below you’ll notice that we specify our policy as -P "OR ('Org0MSP.member','Org1MSP.member')". This means that we need “endorsement” from a peer belonging to Org1 OR Org2 (i.e. only one endorsement). If we changed the syntax to AND then we would need two endorsements.
 
