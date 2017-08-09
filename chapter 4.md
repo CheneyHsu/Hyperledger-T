@@ -57,32 +57,5 @@ Fabric 1.0 的重要特征是支持多chain和多channel；
 
 `1.0 版本的代码和文档每天都在更新，请大家关注官网和github.`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Fabric1.0 账本组成
 ![jpg](./images/Hyperledger-arch-1.jpg)
