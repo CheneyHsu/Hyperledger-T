@@ -405,210 +405,263 @@ We should see the following:
         peer0.org1.example.com and peer1.org1.example.com belong to Org1; peer0.org2.example.com and peer1.org2.example.com belong to Org2
 * 这些关系都在`crypto-config.yaml`定义以及`MSP`路径在docker compose中指定.
 
-* 
-* The anchor peers for Org1MSP (peer0.org1.example.com) and Org2MSP (peer0.org2.example.com) are then updated. We do this by passing the Org1MSPanchors.tx and Org2MSPanchors.tx artifacts to the ordering service along with the name of our channel.
-    A chaincode - chaincode_example02 - is installed on peer0.org1.example.com and peer0.org2.example.com
-    The chaincode is then “instantiated” on peer0.org2.example.com. Instantiation adds the chaincode to the channel, starts the container for the target peer, and initializes the key value pairs associated with the chaincode. The initial values for this example are [“a”,”100” “b”,”200”]. This “instantiation” results in a container by the name of dev-peer0.org2.example.com-mycc-1.0 starting.
-    The instantiation also passes in an argument for the endorsement policy. The policy is defined as -P "OR    ('Org1MSP.member','Org2MSP.member')", meaning that any transaction must be endorsed by a peer tied to Org1 or Org2.
-    A query against the value of “a” is issued to peer0.org1.example.com. The chaincode was previously installed on peer0.org1.example.com, so this will start a container for Org1 peer0 by the name of dev-peer0.org1.example.com-mycc-1.0. The result of the query is also returned. No write operations have occurred, so a query against “a” will still return a value of “100”.
-    An invoke is sent to peer0.org1.example.com to move “10” from “a” to “b”
-    The chaincode is then installed on peer1.org2.example.com
-    A query is sent to peer1.org2.example.com for the value of “a”. This starts a third chaincode container by the name of dev-peer1.org2.example.com-mycc-1.0. A value of 90 is returned, correctly reflecting the previous transaction during which the value for key “a” was modified by 10.
+* Org1MSP的Anchor
+Peer(peer0.org1.example.com)和Org2MSP的Anchor
+peer（peer0.org2.example.com）被更新。我们通过传递Org1MSPanchor.tx和Org2MSPanchor.tx以及channel的名字到ordering
+service来实现这一步。
 
-What does this demonstrate?
+* 将编写好的chaincode_example02安装在peer0.org1.example.com和peer0.org2.example.com上（这里并没有安装在所有peer上，而是仅安装在anchor
+peer节点上，anchor
+peer节点之前每个Org设置了一个）
+* chaincode在peer0.org2.example.com上实例化。实例化过程添加chaincode到channel中，为目标peer启动容器，同时初始化与chaincode相关的key-value键值对。本例中初始化的值为[“a”,”100”
+“b”,”200”]。实例化后会启动一个容器dev-peer0.org2.example.com-mycc-1.0。
+* 实例化过程也传递了一个背书策略的参数。背书策略类似形式：-P "OR ('Org1MSP.member','Org2MSP.member')"，代表任何交易必须被Org1或Org2的一个peer背书。
+* 在peer0.org1.example.com上执行查询a的值。chaincode之前已经安装在peer0.org1.example.com上了，因此查询操作会为Org1的peer0节点启动一个容器dev-peer0.org1.example.com-mycc-1.0。查询结果也会返回回来，这个过程中没有任何写操作发生，所以a的值还是100。
+    
+* 发送一个转移账户金额的调用到peer0.org1.example.com，从a账户转移10单位至b账户
+    
+* chaincode然后安装在peer1.org2.example.com上
 
-Chaincode MUST be installed on a peer in order for it to successfully perform read/write operations against the ledger. Furthermore, a chaincode container is not started for a peer until an init or traditional transaction - read/write - is performed against that chaincode (e.g. query for the value of “a”). The transaction causes the container to start. Also, all peers in a channel maintain an exact copy of the ledger which comprises the blockchain to store the immutable, sequenced record in blocks, as well as a state database to maintain a snapshot of the current state. This includes those peers that do not have chaincode installed on them (like peer1.org1.example.com in the above example) . Finally, the chaincode is accessible after it is installed (like peer1.org2.example.com in the above example) because it has already been instantiated.
-How do I see these transactions?
+*发送查询a账户操作至peer1.org2.example.com。这将启动第三个chaincode容器dev-peer1.org2.example.com-mycc-1.0。返回金额90，说明之前帐号金额的转移操作成功执行。.
 
-Check the logs for the CLI Docker container.
+## 这说明了什么
 
-docker logs -f cli
+为了在账本上成功的执行读写操作，chaincode必须安装在peer上。另外，chaincode容器直到实例化或者传统交易-读写执行的时候（例：查询a账户的值），chaincode容器才会启动。channel中的每个节点都维护了账本的完全复制，存储了不可改变的、序列化的记录区块以及state
+database用于保存当前的fabric状态。即便是那些没有安装chaincode的节点（例如peer1.org1.example.com）也会同步账本。最终chaincode在安装到peer1.org1.example.com后就可以被调用了，因为chaincode已经完成了实例化。
+## 怎样查看交易信息
 
-You should see the following output:
+C查看CLI
+docker容器的日志信息
+    docker logs -f cli
 
-2017-05-16 17:08:01.366 UTC [msp] GetLocalMSP -> DEBU 004 Returning existing local MSP
-2017-05-16 17:08:01.366 UTC [msp] GetDefaultSigningIdentity -> DEBU 005 Obtaining default signing identity
-2017-05-16 17:08:01.366 UTC [msp/identity] Sign -> DEBU 006 Sign: plaintext: 0AB1070A6708031A0C08F1E3ECC80510...6D7963631A0A0A0571756572790A0161
-2017-05-16 17:08:01.367 UTC [msp/identity] Sign -> DEBU 007 Sign: digest: E61DB37F4E8B0D32C9FE10E3936BA9B8CD278FAA1F3320B08712164248285C54
-Query Result: 90
-2017-05-16 17:08:15.158 UTC [main] main -> INFO 008 Exiting.....
-===================== Query on PEER3 on channel 'mychannel' is successful =====================
+可以看到交易的详细过程
 
-===================== All GOOD, BYFN execution completed =====================
+    2017-05-16 17:08:01.366 UTC [msp] GetLocalMSP -> DEBU 004 Returning existing local MSP
+    2017-05-16 17:08:01.366 UTC [msp] GetDefaultSigningIdentity -> DEBU 005 Obtaining default signing identity
+    2017-05-16 17:08:01.366 UTC [msp/identity] Sign -> DEBU 006 Sign: plaintext: 0AB1070A6708031A0C08F1E3ECC80510...6D7963631A0A0A0571756572790A0161
+    2017-05-16 17:08:01.367 UTC [msp/identity] Sign -> DEBU 007 Sign: digest: E61DB37F4E8B0D32C9FE10E3936BA9B8CD278FAA1F3320B08712164248285C54
+    Query Result: 90
+    2017-05-16 17:08:15.158 UTC [main] main -> INFO 008 Exiting.....
+    ===================== Query on PEER3 on channel 'mychannel' is successful =====================
+
+    ===================== All GOOD, BYFN execution completed =====================
 
 
- _____   _   _   ____
-| ____| | \ | | |  _ \
-|  _|   |  \| | | | | |
-| |___  | |\  | | |_| |
-|_____| |_| \_| |____/
+    _____   _   _   ____
+    | ____| | \ | | |  _ \
+    |  _|   |  \| | | | | |
+    | |___  | |\  | | |_| |
+    |_____| |_| \_| |____/
 
-You can scroll through these logs to see the various transactions.
-How can I see the chaincode logs?
+## 怎样查看chaincode的日志
 
-Inspect the individual chaincode containers to see the separate transactions executed against each container. Here is the combined output from each container:
+在每个chaincode container上可以查看当前container里所执行过的交易。具体查看命令如下：
 
-$ docker logs dev-peer0.org2.example.com-mycc-1.0
-04:30:45.947 [BCCSP_FACTORY] DEBU : Initialize BCCSP [SW]
-ex02 Init
-Aval = 100, Bval = 200
+    $ docker logs dev-peer0.org2.example.com-mycc-1.0
+    04:30:45.947 [BCCSP_FACTORY] DEBU : Initialize BCCSP [SW]
+    ex02 Init
+    Aval = 100, Bval = 200
 
-$ docker logs dev-peer0.org1.example.com-mycc-1.0
-04:31:10.569 [BCCSP_FACTORY] DEBU : Initialize BCCSP [SW]
-ex02 Invoke
-Query Response:{"Name":"a","Amount":"100"}
-ex02 Invoke
-Aval = 90, Bval = 210
+    $ docker logs dev-peer0.org1.example.com-mycc-1.0
+    04:31:10.569 [BCCSP_FACTORY] DEBU : Initialize BCCSP [SW]
+    ex02 Invoke
+    Query Response:{"Name":"a","Amount":"100"}
+    ex02 Invoke
+    Aval = 90, Bval = 210
 
-$ docker logs dev-peer1.org2.example.com-mycc-1.0
-04:31:30.420 [BCCSP_FACTORY] DEBU : Initialize BCCSP [SW]
-ex02 Invoke
-Query Response:{"Name":"a","Amount":"90"}
+    $ docker logs dev-peer1.org2.example.com-mycc-1.0
+    04:31:30.420 [BCCSP_FACTORY] DEBU : Initialize BCCSP [SW]
+    ex02 Invoke
+    Query Response:{"Name":"a","Amount":"90"}
 
-Understanding the Docker Compose topology
+## 理解docker-compose拓扑结构
 
-The BYFN sample offers us two flavors of Docker Compose files, both of which are extended from the docker-compose-base.yaml (located in the base folder). Our first flavor, docker-compose-cli.yaml, provides us with a CLI container, along with an orderer, four peers. We use this file for the entirety of the instructions on this page.
+BYFN例子提供了两种docker-compose文件配置，每一种都是由docker-compose-base.yaml（文件存放在base文件夹中）文件拓展而来。第一个配置文件是docker-compose-cli.yaml，该配置文件配置了一个CLI容器，一个orderer，4个peer节点。使用该配置文件启动可以实现本文中的所有操作指令。第二种配置文件docker-compose-e2e.yaml是配置启动一个使用Node.js
+SDK的点对点测试。这个配置文件的主要区别是包含了fabric-ca-servers容器。因此，我们可以使用REST接口实现向CA组织注册和登记用户。
 
-Note
+如果你想使用docker-compose-e2e.yaml并且不先运行byfn.sh脚本，那么我们需要做4个微改动。我们需要设定Organization
+CA的私鈅。你可以设定这些值为你的crypto-config文件夹。例如设置Org1的私鈅路径为：crypto-config/peerOrganizations/org1.example.com/ca/。私鈅文件是一个长hash值加上_sk组成。设定Org2的私鈅为crypto-config/peerOrganizations/org2.example.com/ca/
 
-the remainder of this section covers a docker-compose file designed for the SDK. Refer to the Node SDK repo for details on running these tests.
+另外2出改动是修改docker-compose-e2e.yaml中ca0和ca1配置中的FABRIC_CA_SERVER_TLS_KEYFILE变量对应的值。需要指定tls证书所在的路径。
 
-The second flavor, docker-compose-e2e.yaml, is constructed to run end-to-end tests using the Node.js SDK. Aside from functioning with the SDK, its primary differentiation is that there are containers for the fabric-ca servers. As a result, we are able to send REST calls to the organizational CAs for user registration and enrollment.
+#### 按照一个简单区块链网络的生成过程，制作执行过程如下：
+1. 生成必要信息
 
-If you want to use the docker-compose-e2e.yaml without first running the byfn.sh script, then we will need to make four slight modifications. We need to point to the private keys for our Organization’s CA’s. You can locate these values in your crypto-config folder. For example, to locate the private key for Org1 we would follow this path - crypto-config/peerOrganizations/org1.example.com/ca/. The private key is a long hash value followed by _sk. The path for Org2 would be - crypto-config/peerOrganizations/org2.example.com/ca/.
+    1、网路节点的证书文件
 
-In the docker-compose-e2e.yaml update the FABRIC_CA_SERVER_TLS_KEYFILE variable for ca0 and ca1. You also need to edit the path that is provided in the command to start the ca server. You are providing the same private key twice for each CA container.
-Using CouchDB
+    ../bin/cryptogen generate --config=./crypto-config.yaml
 
-The state database can be switched from the default (goleveldb) to CouchDB. The same chaincode functions are available with CouchDB, however, there is the added ability to perform rich and complex queries against the state database data content contingent upon the chaincode data being modeled as JSON.
+   2、生成gensis block
 
-To use CouchDB instead of the default database (goleveldb), follow the same procedures outlined earlier for generating the artifacts, except when starting the network pass docker-compose-couch.yaml as well:
+    export FABRIC_CFG_PATH=$PWD
+    ../bin/configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
 
-CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=<pick_a_value> docker-compose -f docker-compose-cli.yaml -f docker-compose-couch.yaml up -d
+   3、生成channel.tx
 
-chaincode_example02 should now work using CouchDB underneath.
+    ../bin/configtxgen
+			-profile TwoOrgsChannel -outputCreateChannelTx
+			./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
 
-Note
+   4、生成anchor peer
+    ../bin/configtxgen
+			-profile TwoOrgsChannel -outputAnchorPeersUpdate
+			./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME
+			-asOrg Org1MSP
 
-If you choose to implement mapping of the fabric-couchdb container port to a host port, please make sure you are aware of the security implications. Mapping of the port in a development environment makes the CouchDB REST API available, and allows the visualization of the database via the CouchDB web interface (Fauxton). Production environments would likely refrain from implementing port mapping in order to restrict outside access to the CouchDB containers.
+2. 创建channel
 
-You can use chaincode_example02 chaincode against the CouchDB state database using the steps outlined above, however in order to exercise the CouchDB query capabilities you will need to use a chaincode that has data modeled as JSON, (e.g. marbles02). You can locate the marbles02 chaincode in the fabric/examples/chaincode/go directory.
+    peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx
 
-We will follow the same process to create and join the channel as outlined in the Create & Join Channel section above. Once you have joined your peer(s) to the channel, use the following steps to interact with the marbles02 chaincode:
+    创建channel的命令由peer节点发起，使用上文生成的channel.tx，上述命令生成<channel_name>.block在当前文件夹中，该block中保存了channel.tx的信息。节点加入channel后，该区块作为节点区块链的第一个区块。
 
-    Install and instantiate the chaincode on peer0.org1.example.com:
+3. 加入peer节点到channel中
 
-# be sure to modify the $CHANNEL_NAME variable accordingly for the instantiate command
+    peer channel join -b $CHANNEL_NAME.block
 
-peer chaincode install -n marbles -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/marbles02
-peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -v 1.0 -c '{"Args":["init"]}' -P "OR ('Org0MSP.member','Org1MSP.member')"
+    peer加入channel时使用创建channel时生成的block文件
 
-    Create some marbles and move them around:
+    加入哪个peer节点到channel中，需要通过在CLI容器中设置如下环境变量指定：
+
+    CORE_PEER_LOCALMSPID="Org1MSP"
+
+    CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+
+    CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+
+
+    CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+
+    设置上述环境变量，加入peer0节点到channel中
+
+4. 更新Anchor peer
+    
+    peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx
+
+    使用configtxgen生成的anchor.tx文件
+
+5. 安装chaincode
+ 	
+    peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02
+
+    在CLI容器中设置环境变量指定在哪个peer节点上安装chaincode
+
+6. 在channel上实例化chaincode
+    peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "OR ('Org1MSP.member','Org2MSP.member')"
+
+    需要设定环境变量指定在哪个peer节点上执行实例化chaincode命令
+
+7. 执行chaincode调用
+
+
+## Using CouchDB
+
+状态数据库可以从默认的 (goleveldb) 切换到CouchDB. 相同的链码功能同样支持CouchDB, 然后, 可以提供更丰富和复杂的查询从状态数据库，建模为JSON.
+
+使用 CouchDB 替代默认的 (goleveldb), 使用 docker-compose-couch.yaml配置文件来完成:
+
+    CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=<pick_a_value> docker-compose -f docker-compose-cli.yaml -f docker-compose-couch.yaml up -d
+
+#### chaincode_example02 现在可以工作在CouchDB.
+
+你可以部署chaincode_example02链码在CouchDB状态数据库使用上面的步骤，但是为了联系CouchDB的查询功能，您将需要使用一个链码，建模JSON数据，（如marbles02）。你可以在本地找到marbles02链码，在 fabric/examples/chaincode/go directory.
+
+我们将按照同样的过程创建和加入频道，如上文所述的创建和连接通道部分所述。一旦你加入peers的频道，使用下面的步骤与marbles02码互动： 
+
+#### Install and instantiate the chaincode on peer0.org1.example.com:
+
+    # be sure to modify the $CHANNEL_NAME variable accordingly for the instantiate command
+
+    peer chaincode install -n marbles -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/marbles02
+    peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -v 1.0 -c '{"Args":["init"]}' -P "OR ('Org0MSP.member','Org1MSP.member')"
+
+#### Create some marbles and move them around:
 
 # be sure to modify the $CHANNEL_NAME variable accordingly
 
-peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["initMarble","marble1","blue","35","tom"]}'
-peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["initMarble","marble2","red","50","tom"]}'
-peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["initMarble","marble3","blue","70","tom"]}'
-peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["transferMarble","marble2","jerry"]}'
-peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["transferMarblesBasedOnColor","blue","jerry"]}'
-peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["delete","marble1"]}'
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["initMarble","marble1","blue","35","tom"]}'
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["initMarble","marble2","red","50","tom"]}'
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["initMarble","marble3","blue","70","tom"]}'
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["transferMarble","marble2","jerry"]}'
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["transferMarblesBasedOnColor","blue","jerry"]}'
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n marbles -c '{"Args":["delete","marble1"]}'
 
-    If you chose to map the CouchDB ports in docker-compose, you can now view the state database through the CouchDB web interface (Fauxton) by opening a browser and navigating to the following URL:
+使用浏览器访问如下URL:
 
     http://localhost:5984/_utils
 
-You should see a database named mychannel (or your unique channel name) and the documents inside it.
+你可以看见一个mychannel的数据库.
 
-Note
+> 一下命令一定要更新 $CHANNEL_NAME 变量.
 
-For the below commands, be sure to update the $CHANNEL_NAME variable appropriately.
+可以在 CLI 运行查询 (e.g. reading marble2):
 
-You can run regular queries from the CLI (e.g. reading marble2):
+    peer chaincode query -C $CHANNEL_NAME -n marbles -c '{"Args":["readMarble","marble2"]}'
 
-peer chaincode query -C $CHANNEL_NAME -n marbles -c '{"Args":["readMarble","marble2"]}'
+输出可以看到详细的信息marble2:
 
-The output should display the details of marble2:
+    Query Result: {"color":"red","docType":"marble","name":"marble2","owner":"jerry","size":50}
 
-Query Result: {"color":"red","docType":"marble","name":"marble2","owner":"jerry","size":50}
+检索历史 marble1:
 
-You can retrieve the history of a specific marble - e.g. marble1:
+    peer chaincode query -C $CHANNEL_NAME -n marbles -c '{"Args":["getHistoryForMarble","marble1"]}'
 
-peer chaincode query -C $CHANNEL_NAME -n marbles -c '{"Args":["getHistoryForMarble","marble1"]}'
+输出可以看到详细信息 marble1:
 
-The output should display the transactions on marble1:
+    Query Result: [{"TxId":"1c3d3caf124c89f91a4c0f353723ac736c58155325f02890adebaa15e16e6464", "Value":{"docType":"marble","name":"marble1","color":"blue","size":35,"owner":"tom"}},{"TxId":"755d55c281889eaeebf405586f9e25d71d36eb3d35420af833a20a2f53a3eefd", "Value":{"docType":"marble","name":"marble1","color":"blue","size":35,"owner":"jerry"}},{"TxId":"819451032d813dde6247f85e56a89262555e04f14788ee33e28b232eef36d98f", "Value":}]
 
-Query Result: [{"TxId":"1c3d3caf124c89f91a4c0f353723ac736c58155325f02890adebaa15e16e6464", "Value":{"docType":"marble","name":"marble1","color":"blue","size":35,"owner":"tom"}},{"TxId":"755d55c281889eaeebf405586f9e25d71d36eb3d35420af833a20a2f53a3eefd", "Value":{"docType":"marble","name":"marble1","color":"blue","size":35,"owner":"jerry"}},{"TxId":"819451032d813dde6247f85e56a89262555e04f14788ee33e28b232eef36d98f", "Value":}]
+查询jerry:
 
-You can also perform rich queries on the data content, such as querying marble fields by owner jerry:
+    peer chaincode query -C $CHANNEL_NAME -n marbles -c '{"Args":["queryMarblesByOwner","jerry"]}'
 
-peer chaincode query -C $CHANNEL_NAME -n marbles -c '{"Args":["queryMarblesByOwner","jerry"]}'
-
-The output should display the two marbles owned by jerry:
+查到2个jerry:
 
 Query Result: [{"Key":"marble2", "Record":{"color":"red","docType":"marble","name":"marble2","owner":"jerry","size":50}},{"Key":"marble3", "Record":{"color":"blue","docType":"marble","name":"marble3","owner":"jerry","size":70}}]
 
-A Note on Data Persistence
+#### 数据持久化
 
-If data persistence is desired on the peer container or the CouchDB container, one option is to mount a directory in the docker-host into a relevant directory in the container. For example, you may add the following two lines in the peer container specification in the docker-compose-base.yaml file:
+使CouchDB数据持久在 docker-compose-base.yaml 文件peer部分中添加如下:
 
-volumes:
- - /var/hyperledger/peer0:/var/hyperledger/production
+    volumes:
+    - /var/hyperledger/peer0:/var/hyperledger/production
 
-For the CouchDB container, you may add the following two lines in the CouchDB container specification:
+在CouchDB部分添加如下:
 
-volumes:
- - /var/hyperledger/couchdb0:/opt/couchdb/data
+    volumes:
+    - /var/hyperledger/couchdb0:/opt/couchdb/data
 
-Troubleshooting
+## Troubleshooting
 
-    Always start your network fresh. Use the following command to remove artifacts, crypto, containers and chaincode images:
+开始新的网络前，先使用如下命令清空项目，密码，容器以及链码。
 
-./byfn.sh -m down
+    ./byfn.sh -m down
 
-    YOU WILL SEE ERRORS IF YOU DO NOT REMOVE CONTAINERS AND IMAGES
-    If you see Docker errors, first check your version (should be 17.03.1 or above), and then try restarting your Docker process. Problems with Docker are oftentimes not immediately recognizable. For example, you may see errors resulting from an inability to access crypto material mounted within a container.
-    If they persist remove your images and start from scratch:
+若果不能删除容器，可以看到报错。
+如果是容器报错，首先检测你的版本（17.03.1以上），可以使用如下命令直接删除。
 
-docker rm -f $(docker ps -aq)
-docker rmi -f $(docker images -q)
+    docker rm -f $(docker ps -aq)
+    docker rmi -f $(docker images -q)
 
-    If you see errors on your create, instantiate, invoke or query commands, make sure you have properly updated the channel name and chaincode name. There are placeholder values in the supplied sample commands.
-    If you see the below error:
+如果错误是 create, instantiate, invoke or query 命令, 确保你有正确的更新频道名称和链码的名字。在提供的示例命令中有占位符值。 
+    
+如果你看到如下报错:
 
 Error: Error endorsing chaincode: rpc error: code = 2 desc = Error installing chaincode code mycc:1.0(chaincode /var/hyperledger/production/chaincodes/mycc.1.0 exits)
 
-You likely have chaincode images (e.g. dev-peer1.org2.example.com-mycc-1.0 or dev-peer0.org1.example.com-mycc-1.0) from prior runs. Remove them and try again.
+有可能是 (e.g. dev-peer1.org2.example.com-mycc-1.0 or dev-peer0.org1.example.com-mycc-1.0) 正在运行或者已经存在.删除后重试.
 
-docker rmi -f $(docker images | grep peer[0-9]-peer[0-9] | awk '{print $3}')
-
-    If you see something similar to the following:
+    docker rmi -f $(docker images | grep peer[0-9]-peer[0-9] | awk '{print $3}')
 
 Error connecting: rpc error: code = 14 desc = grpc: RPC failed fast due to transport failure
 Error: rpc error: code = 14 desc = grpc: RPC failed fast due to transport failure
 
-Make sure you are running your network against the “1.0.0” images that have been retagged as “latest”.
+版本需要时1.0.0，而且需要标记“latest”.
 
-If you see the below error:
 
 [configtx/tool/localconfig] Load -> CRIT 002 Error reading configuration: Unsupported Config Type ""
 panic: Error reading configuration: Unsupported Config Type ""
 
-Then you did not set the FABRIC_CFG_PATH environment variable properly. The configtxgen tool needs this variable in order to locate the configtx.yaml. Go back and execute an export FABRIC_CFG_PATH=$PWD, then recreate your channel artifacts.
+环境变量设置错误 FABRIC_CFG_PATH，configtxgen工具变量来至configtx.yaml. 设置变量 FABRIC_CFG_PATH=$PWD, 然后重新创建channel.
 
-    To cleanup the network, use the down option:
+清除所有设置
 
-./byfn.sh -m down
-
-    If you see an error stating that you still have “active endpoints”, then prune your Docker networks. This will wipe your previous networks and start you with a fresh environment:
-
-docker network prune
-
-You will see the following message:
-
-WARNING! This will remove all networks not used by at least one container.
-Are you sure you want to continue? [y/N]
-
-Select y.
-
-    If you continue to see errors, share your logs on the # fabric-questions channel on Hyperledger Rocket Chat.
+    ./byfn.sh -m down
