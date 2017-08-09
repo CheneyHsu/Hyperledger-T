@@ -356,19 +356,11 @@ Start your network:
 接下来,初始化channel 上的链码,通过链码集初始化链码,并且设置初始化参数,注意`-p`参数, 交易的背书策略对于一个交易的验证.
 
 下面的命令中,指定背书策略为
-<<<<<<< HEAD
-  -P "OR ('Org0MSP.member','Org1MSP.member')".
-  意义是需要背书在Org1 和 Org2 的每个peer。可以改变下语法试着需要2个背书`AND`
-=======
 
+    <<<<<<< HEAD
     -P "OR ('Org0MSP.member','Org1MSP.member')".
-    This means that we need “endorsement” from a peer belonging to Org1 OR Org2 (i.e. only one endorsement). If we changed the syntax to AND then we would need two endorsements.
->>>>>>> 289b78edfe9cf0aa3b40f14e8562d23dac668f05
+    意义是需要背书在Org1 和 Org2 的每个peer。可以改变下语法试着需要2个背书`AND`
 
-        # be sure to replace the $CHANNEL_NAME environment variable
-        # if you did not install your chaincode with a name of mycc, then modify that argument as well
-
-        peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a", "100", "b","200"]}' -P "OR ('Org1MSP.member','Org2MSP.member')"
 
 >详见背书策略！
 ## Query
