@@ -38,19 +38,17 @@
             echo "already exist"
         fi
 
-#### 2. 修改 fabric目录下Makefile，在203行下添加
-	-v /opt/gopath:/opt/gopath
-#### 3. 修改 fabric/gotools 目录下的Makefile，在44行下方增加
+#### 2. 修改 fabric/gotools 目录下的Makefile，在44行下方增加
    
     @mkdir -p $(TMP_GOPATH)/src/github.com/golang/protobuf/
 	@cp -R $(GOPATH)/src/github.com/hyperledger/fabric/vendor/github.com/golang/protobuf/* $(TMP_GOPATH)/src/github.com/golang/protobuf
-#### 4. 在 $(GOBIN)/%: 22行下增加
+#### 3. 在 $(GOBIN)/%: 22行下增加
 
     @echo "copy x/tools resource"
     @sudo mkdir -p $(TMP_GOPATH)/src/golang.org/x
     @sudo chown ubuntu.ubuntu -R $(TMP_GOPATH)/src/golang.org
     @cp -rf $(GOPATH)/src/github.com/golang/tools $(TMP_GOPATH)/src/golang.org/x
-#### 5. 修改Vagrantfile文件添加要传输的文件夹
+#### 4. 修改Vagrantfile文件添加要传输的文件夹
     if File.exist?("../../fabric-ca")
         config.vm.synced_folder "../../fabric-ca", "/opt/gopath/src/github.com/hyperledger/fabric-ca"
      end
