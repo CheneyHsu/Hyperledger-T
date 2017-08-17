@@ -17,3 +17,5 @@
 2017-08-01 Complete single-node-E2E-ubuntu1604.
 
 2017-08-16 Complete vagrant setup fabric 1.0 .
+
+2017-08-17 complete Chaincode for Developers.
