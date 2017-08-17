@@ -1,204 +1,194 @@
-The goal of this document is to show the tasks and provide a baseline for writing your first application against a Hyperledger Fabric network.
+# Writing Your First Application
+在Hyperledger Fabric network中书写你的第一个程序.
 
-At the most basic level, applications on a blockchain network are what enable users to query a ledger (asking for specific records it contains), or to update it (adding records to it).
+在最基本的层面上，在blockchain网络中应用是怎么让用户查询分类（根据所包含的特定记录），或更新（添加记录）。
 
-Our application, composed in Javascript, leverages the Node.js SDK to interact with the network (where our ledger exists). This tutorial will guide you through the three steps involved in writing your first application.
+我们的程序中，包括Javascript，使用node.js与网络进行交互（前提是必须存在账本），指导完成第一个应用程序的3个步骤。
 
-    1. Starting a test Hyperledger Fabric blockchain network. We need some basic components in our network in order to query and update the ledger. These components – a peer node, ordering node and Certificate Authority – serve as the backbone of our network; we’ll also have a CLI container used for a few administrative commands. A single script will download and launch this test network.
 
-    2. Learning the parameters of the sample smart contract our app will use. Our smart contracts contain various functions that allow us to interact with the ledger in different ways. For example, we can read data holistically or on a more granular level.
+    1. 测试hyperledger fabric 的网络启动，我们需要一些特定的基本组件，方便查询和更新账本，组件包括“
+    peer node, ordering node and Certificate Authority – 充当我们的主要组件; 我们还将有一个用于管理命令的CLI容器。单个脚本将下载并启动此测试网络。
 
-    3. Developing the application to be able to query and update records. We provide two sample applications – one for querying the ledger and another for updating it. Our apps will use the SDK APIs to interact with the network and ultimately call these functions.
+    2. 学习智能合约的的示例参数，我们的程序将会使用到. 我们的智能合约包含各种功能，允许我们以不同的方式与分类账进行交互，例如：读取精确的数据和整体数据。
 
-After completing this tutorial, you should have a basic understanding of how an application, using the Hyperledger Fabric SDK for Node.js, is programmed in conjunction with a smart contract to interact with the ledger on a Hyperledger Fabric network.
+    3. 开发应用程序，以便能够查询和更新记录。我们提供两个示例应用程序，一个用于查询分类账，另一个用于更新。我们的应用程序将使用SDK API与网络进行交互，并最终调用这些函数。 
 
-First, let’s launch our test network...
-Getting a Test Network
+首先，启动测试网络...
 
-Visit the Prerequisites page and ensure you have the necessary dependencies installed on your machine.
+## Getting a Test Network
 
-Now determine a working directory where you want to clone the fabric-samples repo. Issue the clone command and change into the fabcar subdirectory
+确认前置依赖条件都已经具备。
 
-git clone https://github.com/hyperledger/fabric-samples.git
-cd fabric-samples/fabcar
+确定一个工作目录，然后clone数据到本地，进入fabcar..
 
-This subdirectory – fabcar – contains the scripts and application code to run the sample app. Issue an ls from this directory. You should see the following:
+    git clone https://github.com/hyperledger/fabric-samples.git
+    cd fabric-samples/fabcar
 
-chaincode    invoke.js       network         package.json    query.js        startFabric.sh
 
-Now use the startFabric.sh script to launch the network.
+这个子目录–fabcar–包含脚本和应用程序代码运行的示例应用程序，ls一下。您应该看到以下内容： 
 
-Note
+    chaincode    invoke.js       network         package.json    query.js        startFabric.sh
 
-The following command downloads and extracts the Hyperledger Fabric Docker images, so it will take a few minutes to complete.
+现在使用startFabric.sh 来启动.
 
-./startFabric.sh
+    ./startFabric.sh
 
-For the sake of brevity, we won’t delve into the details of what’s happening with this command. Here’s a quick synopsis:
+该脚本大致步骤如下:
 
-    launches a peer node, ordering node, Certificate Authority and CLI container
-    creates a channel and joins the peer to the channel
-    installs smart contract (i.e. chaincode) onto the peer’s file system and instantiates said chaincode on the channel; instantiate starts a chaincode container
-    calls the initLedger function to populate the channel ledger with 10 unique cars
+    1.启动 peer node, ordering node, Certificate Authority and CLI container
+    2.creates a channel and joins the peer to the channel
+    3.installs smart contract (i.e. chaincode) onto the peer’s file system and instantiates said chaincode on the channel; instantiate starts a chaincode container
+    4.calls the initLedger function to populate the channel ledger with 10 unique cars
 
-Note
+![png](../../images/AppConceptsOverview.png)
 
-These operations will typically be done by an organizational or peer admin. The script uses the CLI to execute these commands, however there is support in the SDK as well. Refer to the Hyperledger Fabric Node SDK repo for example scripts.
+有了网络和示例代码之后，来研究一下，不同部分是如何组合在一起的。
+## How Applications Interact with the Network
 
-Issue a docker ps command to reveal the processes started by the startFabric.sh script. You can learn more about the details and mechanics of these operations in the Building Your First Network section. Here we’ll just focus on the application. The following picture provides a simplistic representation of how the application interacts with the Hyperledger Fabric network.
-_images/AppConceptsOverview.png
+应用程序使用的API调用智能合同（简称“chaincode”）。这些智能合约托管在网络中，并通过名称和版本进行标识。例如，我们的链码容器为dev-peer0.org1.example.com-fabcar-1.0，版本是1.0，同时运行的是dev-peer0.org1.example.com。
 
-Alright, now that you’ve got a sample network and some code, let’s take a look at how the different pieces fit together.
-How Applications Interact with the Network
+API可以通过软件开发工具包（SDK）访问。这个练习的目的，我们将使用hyperledger fabric SDK虽然也有一个java sdk和CLI可以用来开发应用程序。
 
-Applications use APIs to invoke smart contracts (referred to as “chaincode”). These smart contracts are hosted in the network and identified by name and version. For example, our chaincode container is titled - dev-peer0.org1.example.com-fabcar-1.0 - where the name is fabcar, the version is 1.0 and the peer it is running against is dev-peer0.org1.example.com.
+## Querying the Ledger
+查询是如何从分类帐中读取数据的。您可以查询单个键或者多个键的值，如果分类帐是用JSON这样的丰富数据存储格式编写的，那么可以对它执行复杂的搜索（例如，查找包含某些关键字的所有资产）。
 
-APIs are accessible with a software development kit (SDK). For purposes of this exercise, we’ll be using the Hyperledger Fabric Node SDK though there is also a Java SDK and CLI that can be used to develop applications.
-Querying the Ledger
+![png](../../images/QueryingtheLedger.png)
 
-Queries are how you read data from the ledger. You can query for the value of a single key, multiple keys, or – if the ledger is written in a rich data storage format like JSON – perform complex searches against it (looking for all assets that contain certain keywords, for example).
-_images/QueryingtheLedger.png
+在查看该应用程序如何工作之前，我们需要安装SDK节点模块以便程序运行。从你的fabcar目录，问题如下：
 
-As we said earlier, our sample network has an active chaincode container and a ledger that has been primed with 10 different cars. We also have some sample Javascript code - query.js - in the fabcar directory that can be used to query the ledger for details on the cars.
+    npm install
 
-Before we take a look at how that app works, we need to install the SDK node modules in order for our program to function. From your fabcar directory, issue the following:
+现在可以运行程序来查询了：
 
-npm install
+    node query.js
 
-Note
+返回如下列:
 
-You will issue all subsequent commands from the fabcar directory.
+    Query result count =  1
+    Response is  [{"Key":"CAR0", "Record":{"colour":"blue","make":"Toyota","model":"Prius","owner":"Tomoko"}},
+    {"Key":"CAR1",   "Record":{"colour":"red","make":"Ford","model":"Mustang","owner":"Brad"}},
+    {"Key":"CAR2", "Record":{"colour":"green","make":"Hyundai","model":"Tucson","owner":"Jin Soo"}},
+    {"Key":"CAR3", "Record":{"colour":"yellow","make":"Volkswagen","model":"Passat","owner":"Max"}},
+    {"Key":"CAR4", "Record":{"colour":"black","make":"Tesla","model":"S","owner":"Adriana"}},
+    {"Key":"CAR5", "Record":{"colour":"purple","make":"Peugeot","model":"205","owner":"Michel"}},
+    {"Key":"CAR6", "Record":{"colour":"white","make":"Chery","model":"S22L","owner":"Aarav"}},
+    {"Key":"CAR7", "Record":{"colour":"violet","make":"Fiat","model":"Punto","owner":"Pari"}},
+    {"Key":"CAR8", "Record":{"colour":"indigo","make":"Tata","model":"Nano","owner":"Valeria"}},
+    {"Key":"CAR9", "Record":{"colour":"brown","make":"Holden","model":"Barina","owner":"Shotaro"}}]
+10辆车返回的结果。
 
-Now we can run our javascript programs. First, let’s run our query.js program to return a listing of all the cars on the ledger. A function that will query all the cars, queryAllCars, is pre-loaded in the app, so we can simply run the program as is:
+使用atom或者visual studio打开query.js.
 
-node query.js
+初始化过程中定义了chaincode ID ， channel name 和 网络连接点的环境变量
 
-It should return something like this:
+    var options = {
+        wallet_path : path.join(__dirname, './network/creds'),
+        user_id: 'PeerAdmin',
+        channel_id: 'mychannel',
+        chaincode_id: 'fabcar',
+        network_url: 'grpc://localhost:7051',
 
-Query result count =  1
-Response is  [{"Key":"CAR0", "Record":{"colour":"blue","make":"Toyota","model":"Prius","owner":"Tomoko"}},
-{"Key":"CAR1",   "Record":{"colour":"red","make":"Ford","model":"Mustang","owner":"Brad"}},
-{"Key":"CAR2", "Record":{"colour":"green","make":"Hyundai","model":"Tucson","owner":"Jin Soo"}},
-{"Key":"CAR3", "Record":{"colour":"yellow","make":"Volkswagen","model":"Passat","owner":"Max"}},
-{"Key":"CAR4", "Record":{"colour":"black","make":"Tesla","model":"S","owner":"Adriana"}},
-{"Key":"CAR5", "Record":{"colour":"purple","make":"Peugeot","model":"205","owner":"Michel"}},
-{"Key":"CAR6", "Record":{"colour":"white","make":"Chery","model":"S22L","owner":"Aarav"}},
-{"Key":"CAR7", "Record":{"colour":"violet","make":"Fiat","model":"Punto","owner":"Pari"}},
-{"Key":"CAR8", "Record":{"colour":"indigo","make":"Tata","model":"Nano","owner":"Valeria"}},
-{"Key":"CAR9", "Record":{"colour":"brown","make":"Holden","model":"Barina","owner":"Shotaro"}}]
+查询如下：
 
-These are the 10 cars. A black Tesla Model S owned by Adriana, a red Ford Mustang owned by Brad, a violet Fiat Punto owned by someone named Pari, and so on. The ledger is key/value based and in our implementation the key is CAR0 through CAR9. This will become particularly important in a moment.
-
-Now let’s see what it looks like under the hood (if you’ll forgive the pun). Use an editor (e.g. atom or visual studio) and open the query.js program.
-
-The inital section of the application defines certain variables such as chaincode ID, channel name and network endpoints:
-
-var options = {
-      wallet_path : path.join(__dirname, './network/creds'),
-      user_id: 'PeerAdmin',
-      channel_id: 'mychannel',
-      chaincode_id: 'fabcar',
-      network_url: 'grpc://localhost:7051',
-
-This is the chunk where we construct our query:
-
-// queryCar - requires 1 argument, ex: args: ['CAR4'],
-// queryAllCars - requires no arguments , ex: args: [''],
-const request = {
-   chaincodeId: options.chaincode_id,
-   txId: transaction_id,
-   fcn: 'queryAllCars',
-   args: ['']
-
-We define the chaincode_id variable as fabcar – allowing us to target this specific chaincode – and then call the queryAllCars function defined within that chaincode.
-
-When we issued the node query.js command earlier, this specific function was called to query the ledger. However, this isn’t the only function that we can pass.
-
-To take a look at the others, navigate to the chaincode subdirectory and open fabcar.go in your editor. You’ll see that we have the following functions available to call - initLedger, queryCar, queryAllCars, createCar and changeCarOwner. Let’s take a closer look at the queryAllCars function to see how it interacts with the ledger.
-
-func (s *SmartContract) queryAllCars(APIstub shim.ChaincodeStubInterface) sc.Response {
-
-     startKey := "CAR0"
-     endKey := "CAR999"
-
-     resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
-
-The function uses the shim interface function GetStateByRange to return ledger data between the args of startKey and endKey. Those keys are defined as CAR0 and CAR999 respectively. Therefore, we could theoretically create 1,000 cars (assuming the keys are tagged properly) and a queryAllCars would reveal every one.
-
-Below is a representation of how an app would call different functions in chaincode.
-_images/RunningtheSample.png
-
-We can see our queryAllCars function up there, as well as one called createCar that will allow us to update the ledger and ultimately append a new block to the chain. But first, let’s do another query.
-
-Go back to the query.js program and edit the constructor request to query a specific car. We’ll do this by changing the function from queryAllCars to queryCar and passing a specific “Key” to the args parameter. Let’s use CAR4 here. So our edited query.js program should now contain the following:
-
-const request = {
-      chaincodeId: options.chaincode_id,
-      txId: transaction_id,
-      fcn: 'queryCar',
-      args: ['CAR4']
-
-Save the program and navigate back to your fabcar directory. Now run the program again:
-
-node query.js
-
-You should see the following:
-
-{"colour":"black","make":"Tesla","model":"S","owner":"Adriana"}
-
-So we’ve gone from querying all cars to querying just one, Adriana’s black Tesla Model S. Using the queryCar function, we can query against any key (e.g. CAR0) and get whatever make, model, color, and owner correspond to that car.
-
-Great. Now you should be comfortable with the basic query functions in the chaincode, and the handful of parameters in the query program. Time to update the ledger...
-Updating the Ledger
-
-Now that we’ve done a few ledger queries and added a bit of code, we’re ready to update the ledger. There are a lot of potential updates we could make, but let’s just create a new car for starters.
-
-Ledger updates start with an application generating a transaction proposal. Just like query, a request is constructed to identify the channel ID, function, and specific smart contract to target for the transaction. The program then calls the channel.SendTransactionProposal API to send the transaction proposal to the peer(s) for endorsement.
-
-The network (i.e. endorsing peer) returns a proposal response, which the application uses to build and sign a transaction request. This request is sent to the ordering service by calling the channel.sendTransaction API. The ordering service will bundle the transaction into a block and then “deliver” the block to all peers on a channel for validation. (In our case we have only the single endorsing peer.)
-
-Finally the application uses the eh.setPeerAddr API to connect to the peer’s event listener port, and calls eh.registerTxEvent to register events associated with a specific transaction ID. This API allows the application to know the fate of a transaction (i.e. successfully committed or unsuccessful). Think of it as a notification mechanism.
-
-Note
-
-We don’t go into depth here on a transaction’s lifecycle. Consult the Transaction Flow documentation for lower level details on how a transaction is ultimately committed to the ledger.
-
-The goal with our initial invoke is to simply create a new asset (car in this case). We have a separate javascript program - invoke.js - that we will use for these transactions. Just like query, use an editor to open the program and navigate to the codeblock where we construct our invocation:
-
-// createCar - requires 5 args, ex: args: ['CAR11', 'Honda', 'Accord', 'Black', 'Tom'],
-// changeCarOwner - requires 2 args , ex: args: ['CAR10', 'Barry'],
-// send proposal to endorser
-var request = {
-    targets: targets,
+    // queryCar - requires 1 argument, ex: args: ['CAR4'],
+    // queryAllCars - requires no arguments , ex: args: [''],
+    const request = {
     chaincodeId: options.chaincode_id,
-    fcn: '',
-    args: [''],
-    chainId: options.channel_id,
-    txId: tx_id
+    txId: transaction_id,
+    fcn: 'queryAllCars',
+    args: ['']
 
-You’ll see that we can call one of two functions - createCar or changeCarOwner. Let’s create a red Chevy Volt and give it to an owner named Nick. We’re up to CAR9 on our ledger, so we’ll use CAR10 as the identifying key here. The updated codeblock should look like this:
+我们定义的chaincode_id变量为fabcar–允许我们对特定的链码–然后调用queryallcars内链码定义的函数。
 
-var request = {
-    targets: targets,
-    chaincodeId: options.chaincode_id,
-    fcn: 'createCar',
-    args: ['CAR10', 'Chevy', 'Volt', 'Red', 'Nick'],
-    chainId: options.channel_id,
-    txId: tx_id
+当我们节点发出query.js命令，这一特定的函数被称为查询分类。然而，这并不是我们能传递的唯一功能。 
 
-Save it and run the program:
+看看其他的，在链码的子目录里使用编辑器打开fabcar.go， 将会看到以下功能可以使用，initLedger, queryCar, queryAllCars, createCar and changeCarOwner. 让我看来看一下 queryAllCars 和总账之间的关系.
 
-node invoke.js
+    func (s *SmartContract) queryAllCars(APIstub shim.ChaincodeStubInterface) sc.Response {
 
-There will be some output in the terminal about Proposal Response and Transaction ID. However, all we’re concerned with is this message:
+        startKey := "CAR0"
+        endKey := "CAR999"
 
-The transaction has been committed on peer localhost:7053
+        resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 
-The peer emits this event notification, and our application receives it thanks to our eh.registerTxEvent API. So now if we go back to our query.js program and call the queryCar function against an arg of CAR10, we should see the following:
+该函数使用shim接口函数的`GetStateByRange`返回`startKey and endKey`之间的总账数据。这些键分别被定义为`CAR0`,`CAR999`,理论上我们可以创造100辆车，`queryAllCars`将揭露每一个。
 
-Response is  {"colour":"Red","make":"Chevy","model":"Volt","owner":"Nick"}
+下面是一个表示如何一个应用程序会调用不同的功能码。
 
-Finally, let’s call our last function - changeCarOwner. Nick is feeling generous and he wants to give his Chevy Volt to a man named Barry. So, we simply edit invoke.js to reflect the following:
+![png](../..//images/RunningtheSample.png)
+
+我们可以看到我们的`queryallcars`功能上面，还有一位叫`createcar`将允许我们更新总账最终追加新块链。但是首先，让我们做另一个查询。
+
+回到`query.js`程序和编辑构造函数要求查询某一辆车。我们将通过改变函数来`querycar` `queryallcars`并传递给`args`参数的一个特定的“Key”。所以,我们编辑的query.js程序现在应该包含以下：
+
+    const request = {
+        chaincodeId: options.chaincode_id,
+        txId: transaction_id,
+        fcn: 'queryCar',
+        args: ['CAR4']
+
+保存后执行查询：
+
+    node query.js
+
+返回结果如下:
+
+    {"colour":"black","make":"Tesla","model":"S","owner":"Adriana"}
+
+
+所以我们已经从查询所有车辆更改到只查询一辆，Adriana的黑色特斯拉Model S采用querycar功能，可以查询任意键（例如car0）和得到什么，模型，颜色，和主人对应的车。
+
+非常好.现在你应该舒服的链码的基本查询功能，在查询程序的一些参数。更新分类帐的时间… 
+
+## Updating the Ledger
+
+现在我们已经完成了一些分类账查询并添加了一些代码，我们已经准备好更新分类帐了。我们可以做很多潜在的更新，但是让我们为初学者创建一个新的汽车。
+
+
+
+分类帐更新从一个生成交易建议的应用程序开始。就像查询一样，构造一个请求来标识用于事务的通道ID、函数和特定的智能合约。然后程序调用`channel.sendtransactionproposal` API发送交易到peer（s）并且进行背书。 
+
+网络（即支持对等点）返回一个建议响应，应用程序使用它来构建和签署一个事务请求。这个请求是通过调用channel.sendtransaction API发送到orderer服务。orderer服务将事务捆绑成块，然后将块“传递”到通道上的所有对等点进行验证。（在我们的例子中，我们只有一个支持的对等点）。
+
+最后应用程序使用`eh.setPeerAddr`对事件的节点进行端口侦听，并且，调用`eh.registerTxEvent`去登记与特定事务ID，这个API允许应用程序知道一笔交易的结果（即成功提交或不成功）。把它看作一种通知机制。
+
+我们最初调用的目标是简单地创建一个新资产（在这种情况下是CAR）。我们有一个单独的`JavaScript`程序`invoke.js` -我们将使用这些交易。就像查询，使用编辑器打开程序，浏览到我们建设的调用在代码块： 
+
+    // createCar - requires 5 args, ex: args: ['CAR11', 'Honda', 'Accord', 'Black', 'Tom'],
+    // changeCarOwner - requires 2 args , ex: args: ['CAR10', 'Barry'],
+    // send proposal to endorser
+    var request = {
+        targets: targets,
+        chaincodeId: options.chaincode_id,
+        fcn: '',
+        args: [''],
+        chainId: options.channel_id,
+        txId: tx_id
+
+你会看见2个函数定义 - `createCar` or `changeCarOwner`. 让我们创建一个红色雪佛兰福特给 Nick.当前账本到CAR9,所以我们将使用 `CAR10` 做为识别字段. 更新后应该如下:
+
+    var request = {
+        targets: targets,
+        chaincodeId: options.chaincode_id,
+        fcn: 'createCar',
+        args: ['CAR10', 'Chevy', 'Volt', 'Red', 'Nick'],
+        chainId: options.channel_id,
+        txId: tx_id
+
+保存并执行：
+
+    node invoke.js
+
+输出如下信息:
+
+    The transaction has been committed on peer localhost:7053
+
+调用`query.js`查询，将得到如下信息：
+
+    Response is  {"colour":"Red","make":"Chevy","model":"Volt","owner":"Nick"}
+
+
+最后，我们给我们的最后一个功能`changecarowner`。Nick感觉很慷慨，他想把他的雪佛兰伏特给一个叫巴里的人。所以，我们只需编辑`invoke.js`反映以下： 
 
 var request = {
    targets: targets,
@@ -208,10 +198,9 @@ var request = {
    chainId: options.channel_id,
    txId: tx_id
 
-Execute the program again - node invoke.js - and then run the query app one final time. We are still querying against CAR10, so we should see:
+执行后再次查询结果如下：
 
-Response is  {"colour":"Red","make":"Chevy","model":"Volt","owner":"Barry"}
+    Response is  {"colour":"Red","make":"Chevy","model":"Volt","owner":"Barry"}
 
 Additional Resources
 
-The Hyperledger Fabric Node SDK repo is an excellent resource for deeper documentation and sample code. You can also consult the Hyperledger Fabric community and component experts on Hyperledger Rocket Chat.
