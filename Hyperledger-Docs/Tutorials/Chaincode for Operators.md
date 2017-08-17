@@ -1,33 +1,27 @@
 
-Chaincode for Operators
-What is Chaincode?
+# Chaincode for Operators
+## Chaincode lifecycle
 
-Chaincode is a program, written in Go, and eventually in other programming languages such as Java, that implements a prescribed interface. Chaincode runs in a secured Docker container isolated from the endorsing peer process. Chaincode initializes and manages ledger state through transactions submitted by applications.
+hyperledger Fabric API进行交互在blockchain网络各节点，the peers,orderer 和 MSPs允许一个包的形式，安装和升级的支持，实例化的节点链码。hyperledger fabric特定语言的SDK，hyperledger fabric API，方便应用程序的开发，虽然它可以被用来管理一个链码的周期。此外，hyperledger fabric API可以直接通过命令行访问。
 
-A chaincode typically handles business logic agreed to by members of the network, so it may be considered as a “smart contract”. State created by a chaincode is scoped exclusively to that chaincode and can’t be accessed directly by another chaincode. However, within the same network, given the appropriate permission a chaincode may invoke another chaincode to access its state.
+我们提供四个命令来管理一个链码的生命周期：软件包，安装，实例化和升级。在未来的版本中，我们考虑将停止和启动交易禁用和重新启用chaincode，实际上不用去卸载它。在一个链码已成功安装和实例化，链码是活跃的（运行）和可交易的过程中通过调用事务。一个链码安装后可以任何时间升级。
 
-In the following sections, we will explore chaincode through the eyes of a blockchain network operator, Noah. For Noah’s interests, we will focus on chaincode lifecycle operations; the process of packaging, installing, instantiating and upgrading the chaincode as a function of the chaincode’s operational lifecycle within a blockchain network.
-Chaincode lifecycle
+## Packaging
 
-The Hyperledger Fabric API enables interaction with the various nodes in a blockchain network - the peers, orderers and MSPs - and it also allows one to package, install, instantiate and upgrade chaincode on the endorsing peer nodes. The Hyperledger Fabric language-specific SDKs abstract the specifics of the Hyperledger Fabric API to facilitate application development, though it can be used to manage a chaincode’s lifecycle. Additionally, the Hyperledger Fabric API can be accessed directly via the CLI, which we will use in this document.
+链码包由3部分组成：:
 
-We provide four commands to manage a chaincode’s lifecycle: package, install, instantiate, and upgrade. In a future release, we are considering adding stop and start transactions to disable and re-enable a chaincode without having to actually uninstall it. After a chaincode has been successfully installed and instantiated, the chaincode is active (running) and can process transactions via the invoke transaction. A chaincode may be upgraded any time after it has been installed.
-Packaging
+* 链码，通过chaincodedeploymentspec或CDS定义。CDS定义码封装的代码和其他性质如名称和版本，
+* 一个可选的实例化策略可用于背书和背书的政策描述的语法描述
+*一套签名的实体，属于“自己”的链码的签名实体。
 
-The chaincode package consists of 3 parts:
+签名具有下列目的
 
-        the chaincode, as defined by ChaincodeDeploymentSpec or CDS. The CDS defines the chaincode package in terms of the code and other properties such as name and version,
-        an optional instantiation policy which can be syntactically described by the same policy used for endorsement and described in Endorsement policies, and
-        a set of signatures by the entities that “own” the chaincode.
+* 建立一个所有权的链码
+* 允许验证包的内容
+* 允许检测包篡改.
 
-The signatures serve the following purposes:
 
-        to establish an ownership of the chaincode,
-        to allow verification of the contents of the package, and
-        to allow detection of package tampering.
-
-The creator of the instantiation transaction of the chaincode on a channel is validated against the instantiation policy of the chaincode.
-Creating the package
+## Creating the package
 
 There are two approaches to packaging chaincode. One for when you want to have multiple owners of a chaincode, and hence need to have the chaincode package signed by multiple identities. This workflow requires that we initially create a signed chaincode package (a SignedCDS) which is subsequently passed serially to each of the other owners for signing.
 

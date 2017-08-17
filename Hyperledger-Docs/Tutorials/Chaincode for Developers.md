@@ -11,13 +11,6 @@ chaincode主要处理业务逻辑通过该网络的成员同意，所以它类�
 
 ## Chaincode API
 
-Every chaincode program must implement the Chaincode interface whose methods are called in response to received transactions. In particular the Init method is called when a chaincode receives an instantiate or upgrade transaction so that the chaincode may perform any necessary initialization, including initialization of application state. The Invoke method is called in response to receiving an invoke transaction to process transaction proposals.
-
-The other interface in the chaincode “shim” APIs is the ChaincodeStubInterface which is used to access and modify the ledger, and to make invocations between chaincodes.
-
-In this tutorial, we will demonstrate the use of these APIs by implementing a simple chaincode application that manages simple “assets”.
-
-
 每码程序必须以实现接口的方法以响应接收到的交易。特别是init方法被调用时，chaincode接收实例化或升级交易使链码可以执行任何必要的初始化，包括初始化应用程序状态。调用方法响应于接收调用事务来处理事务。
 
 在“shim”的`chaincodestubinterface API`是用于访问和修改总账的其他接口，调用之间chaincodes。
