@@ -23,78 +23,68 @@ hyperledger Fabric API进行交互在blockchain网络各节点，the peers,order
 
 ## Creating the package
 
-There are two approaches to packaging chaincode. One for when you want to have multiple owners of a chaincode, and hence need to have the chaincode package signed by multiple identities. This workflow requires that we initially create a signed chaincode package (a SignedCDS) which is subsequently passed serially to each of the other owners for signing.
+有2种包装链码，一个是单一链码多个使用者，因此码包需要有多重身份验证，需要最初的签名包，然后其他使用者连续签名。
+ 创建一个签名的链码包，使用下面的命令： 
 
-The simpler workflow is for when you are deploying a SignedCDS that has only the signature of the identity of the node that is issuing the install transaction.
+    peer chaincode package -n mycc -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02 -v 0 -s -S -i "AND('OrgA.admin')" ccpack.out
 
-We will address the more complex case first. However, you may skip ahead to the Installing chaincode section below if you do not need to worry about multiple owners just yet.
+-s 选项创建多人签名
+-S 该过程使用MSP在core.yaml的localmspoid属性值确定报的标识
+-i 允许指定链码的policy，实例化政策具有相同的格式，支持政策和指定的身份可以实例化链码。在上面的例子中，只有组织管理允许实例化的链码。如果没有提供政策，默认使用的策略，只允许贵族的MSP管理员身份来实例化链码。
 
-To create a signed chaincode package, use the following command:
+## Package signing
 
-peer chaincode package -n mycc -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02 -v 0 -s -S -i "AND('OrgA.admin')" ccpack.out
+在创作时签署的，可交给其他业主查阅和签署。
 
-The -s option creates a package that can be signed by multiple owners as opposed to simply creating a raw CDS. When -s is specified, the -S option must also be specified if other owners are going to need to sign. Otherwise, the process will create a SignedCDS that includes only the instantiation policy in addition to the CDS.
+ 包含3个元素的signedcds： 
 
-The -S option directs the process to sign the package using the MSP identified by the value of the localMspid property in core.yaml.
+    CDS包含源代码、名称、版本、链码。
 
-The -S option is optional. However if a package is created without a signature, it cannot be signed by any other owner using the signpackage command.
+    的链码实例化政策，表示为支持政策。
 
-The optional -i option allows one to specify an instantiation policy for the chaincode. The instantiation policy has the same format as an endorsement policy and specifies which identities can instantiate the chaincode. In the example above, only the admin of OrgA is allowed to instantiate the chaincode. If no policy is provided, the default policy is used, which only allows the admin identity of the peer’s MSP to instantiate chaincode.
-Package signing
+    链码的业主名单，以背书方式定义。
 
-A chaincode package that was signed at creation can be handed over to other owners for inspection and signing. The workflow supports out-of-band signing of chaincode package.
+如果未指定实例化策略，则默认策略为通道的任何MSP管理员
 
-The ChaincodeDeploymentSpec may be optionally be signed by the collective owners to create a SignedChaincodeDeploymentSpec (or SignedCDS). The SignedCDS contains 3 elements:
+每个业主认可的chaincodedeploymentspec结合业主的身份（例如证书）和签约的综合结果。
 
-        The CDS contains the source code, the name, and version of the chaincode.
-        An instantiation policy of the chaincode, expressed as endorsement policies.
-        The list of chaincode owners, defined by means of Endorsement.
+chaincode所有者可以使用下面的命令以前创建的包签签：
 
-Note
+    peer chaincode signpackage ccpack.out signedccpack.out
 
-Note that this endorsement policy is determined out-of-band to provide proper MSP principals when the chaincode is instantiated on some channels. If the instantiation policy is not specified, the default policy is any MSP administrator of the channel.
+在`ccpack.out`和`signedccpack.out`分别是输入和输出的软件包，`signedccpack.out`包含在签约使用本地MSP附加签名。 
 
-Each owner endorses the ChaincodeDeploymentSpec by combining it with that owner’s identity (e.g. certificate) and signing the combined result.
+## Installing chaincode
 
-A chaincode owner can sign a previously created signed package using the following command:
+安装事务包链码的源代码转换成规定的格式称为chaincodedeploymentspec（or CDS）并将其安装在一个对等节点将运行链码。
 
-peer chaincode signpackage ccpack.out signedccpack.out
+你必须在每个支持的渠道，将你的链码节点安装码。 
 
-Where ccpack.out and signedccpack.out are the input and output packages, respectively. signedccpack.out contains an additional signature over the package signed using the Local MSP.
-Installing chaincode
+通过API安装了一个简单的`chaincodedeploymentspec` ，它将默认实例化政策，包括空的所有者列表。 
 
-The install transaction packages a chaincode’s source code into a prescribed format called a ChaincodeDeploymentSpec (or CDS) and installs it on a peer node that will run that chaincode.
+链码只能安装在支持拥有成员的链码节点上。无码的那些成员，不能执行码。但是，它们仍然可以验证并将交易提交给分类帐。
 
-Note
+安装一个chaincode，发送`signedproposal`到`lifecycle system chaincode`（LSCC）`System Chaincode` 。例如，安装在部分简单的资产链码描述,使用CLI命令安装SACC码，像下面这样：
 
-You must install the chaincode on each endorsing peer node of a channel that will run your chaincode.
+    peer chaincode install -n asset_mgmt -v 1.0 -p sacc
 
-When the install API is given simply a ChaincodeDeploymentSpec, it will default the instantiation policy and include an empty owner list.
+-p指定路径
 
-Note
+为了在其他peer安装， `SignedProposal` 必须是MSP的管理员
 
-Chaincode should only be installed on endorsing peer nodes of the owning members of the chaincode to protect the confidentiality of the chaincode logic from other members on the network. Those members without the chaincode, can’t be the endorsers of the chaincode’s transactions; that is, they can’t execute the chaincode. However, they can still validate and commit the transactions to the ledger.
+## Instantiate
 
-To install a chaincode, send a SignedProposal to the lifecycle system chaincode (LSCC) described in the System Chaincode section. For example, to install the sacc sample chaincode described in section Simple Asset Chaincode using the CLI, the command would look like the following:
+交易的实例化调用生命周期系统码（LSCC）创建并初始化一个信道码。这是一个链码信道绑定的过程：一个链码可以绑定到任何数量的通道，每个通道单独和独立操作。换句话说，不管有多少其他渠道，chaincode可以安装和实例化，状态保持隔离通道提交的事务。 
 
-peer chaincode install -n asset_mgmt -v 1.0 -p sacc
+一个实例化的交易创造者必须满足的链码包括SignedCDS的实例化政策，也必须是该通道的一个写入者。这对于通道的安全，以防止恶意实体部署chaincodes或欺骗的成员在未绑定的渠道执行chaincodes是重要的。 
 
-The CLI internally creates the SignedChaincodeDeploymentSpec for sacc and sends it to the local peer, which calls the Install method on the LSCC. The argument to the -p option specifies the path to the chaincode, which must be located within the source tree of the user’s GOPATH, e.g. $GOPATH/src/sacc. See the CLI section for a complete description of the command options.
+例如，记得默认实例化的政策是任何渠道MSP管理员，所以chaincode实例化交易创造者必须对渠道成员管理。当交易提案到成员，验证了交易者的签名与实例化policy。在将它提交给分类帐之前，在次期间进行事务验证操作。
 
-Note that in order to install on a peer, the signature of the SignedProposal must be from 1 of the peer’s local MSP administrators.
-Instantiate
+实例化交易还建立在信道码的policy。签入policy描述了由通道成员接受的事务结果的认证要求。 
 
-The instantiate transaction invokes the lifecycle System Chaincode (LSCC) to create and initialize a chaincode on a channel. This is a chaincode-channel binding process: a chaincode may be bound to any number of channels and operate on each channel individually and independently. In other words, regardless of how many other channels on which a chaincode might be installed and instantiated, state is kept isolated to the channel to which a transaction is submitted.
+例如，使用CLI来实例化和初始化SACC码的状态给John和0，命令如下： 
 
-The creator of an instantiate transaction must satisfy the instantiation policy of the chaincode included in SignedCDS and must also be a writer on the channel, which is configured as part of the channel creation. This is important for the security of the channel to prevent rogue entities from deploying chaincodes or tricking members to execute chaincodes on an unbound channel.
-
-For example, recall that the default instantiation policy is any channel MSP administrator, so the creator of a chaincode instantiate transaction must be a member of the channel administrators. When the transaction proposal arrives at the endorser, it verifies the creator’s signature against the instantiation policy. This is done again during the transaction validation before committing it to the ledger.
-
-The instantiate transaction also sets up the endorsement policy for that chaincode on the channel. The endorsement policy describes the attestation requirements for the transaction result to be accepted by members of the channel.
-
-For example, using the CLI to instantiate the sacc chaincode and initialize the state with john and 0, the command would look like the following:
-
-peer chaincode instantiate -n sacc -v 1.0 -c '{"Args":["john","0"]}' -P "OR ('Org1.member','Org2.member')"
+    peer chaincode instantiate -n sacc -v 1.0 -c '{"Args":["john","0"]}' -P "OR ('Org1.member','Org2.member')"
 
 Note
 
