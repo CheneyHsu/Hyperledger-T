@@ -15,3 +15,5 @@
 2017-07-28 Complete fabric-sdk-go & cli sample.
 
 2017-08-01 Complete single-node-E2E-ubuntu1604.
+
+2017-11-06 Complete Ubuntu 16.04 install docker-ce.

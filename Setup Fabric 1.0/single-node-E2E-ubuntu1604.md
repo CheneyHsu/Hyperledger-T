@@ -22,9 +22,7 @@
     8. sudo service docker restart
     9. sudo systemctl enable docker.service
     10. sudo apt-get install python-pip
-    11. curl -L https://get.daocloud.io/docker/compose/releases/download/1.10.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-    12. sudo mv ~/docker-compose /usr/local/bin/docker-compose
-    13. chmod +x /usr/local/bin/docker-compose
+    11. pip install docker-compose
 ### Setup GoLang
 
     1.    wget https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
