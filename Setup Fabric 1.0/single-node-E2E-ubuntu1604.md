@@ -113,7 +113,58 @@ PeerOrgs:
 * tree -L 4 crypto-config
 
 ```
-待补全tree的目录内容
+./
+├── ordererOrganizations
+│   └── example.com
+│       ├── ca
+│       │   ├── 7040930a3e2ebc9cf7456db26e4312613e7a32aae1ef8c24a48f24d4b47229cd_sk
+│       │   └── ca.example.com-cert.pem
+│       ├── msp
+│       │   ├── admincerts
+│       │   ├── cacerts
+│       │   └── tlscacerts
+│       ├── orderers
+│       │   └── orderer.example.com
+│       ├── tlsca
+│       │   ├── 3923698f9d31f0647d4d2406d2540d82b8c81a6a5b917b326ded807995c0b956_sk
+│       │   └── tlsca.example.com-cert.pem
+│       └── users
+│           └── Admin@example.com
+└── peerOrganizations
+    ├── org1.example.com
+    │   ├── ca
+    │   │   ├── ca.org1.example.com-cert.pem
+    │   │   └── f5b5519a38778536fee5faf92a7ca4e0feb8f001552065d2d48cfa4e4a35b337_sk
+    │   ├── msp
+    │   │   ├── admincerts
+    │   │   ├── cacerts
+    │   │   └── tlscacerts
+    │   ├── peers
+    │   │   ├── peer0.org1.example.com
+    │   │   └── peer1.org1.example.com
+    │   ├── tlsca
+    │   │   ├── 9169faf189763964d2770653a36146e8524fa880dd4e7d9b6988c2d82cc91409_sk
+    │   │   └── tlsca.org1.example.com-cert.pem
+    │   └── users
+    │       ├── Admin@org1.example.com
+    │       └── User1@org1.example.com
+    └── org2.example.com
+        ├── ca
+        │   ├── 10a836ff0db252694dfe1be569d3eb93a594a49d5aee2a5dafa50506b58027b7_sk
+        │   └── ca.org2.example.com-cert.pem
+        ├── msp
+        │   ├── admincerts
+        │   ├── cacerts
+        │   └── tlscacerts
+        ├── peers
+        │   ├── peer0.org2.example.com
+        │   └── peer1.org2.example.com
+        ├── tlsca
+        │   ├── d60845501e6c55dffa40fef78ee0467a61f055fb25a5e6de08dffd2877dcb639_sk
+        │   └── tlsca.org2.example.com-cert.pem
+        └── users
+            ├── Admin@org2.example.com
+            └── User1@org2.example.com
 ```
 
 * 按照crypto-config.yaml中的定义，所生成的crypto-config目录下包括多级目录结构。其中ordererOrganizations下包括构成Orderer组织（1个Orderer节点）的身份信息；peerOrganizations下为所有的Peer节点组织（2个组织，4个节点）的相关身份信息。其中最关键的是msp目录，代表了实体的身份信息。
