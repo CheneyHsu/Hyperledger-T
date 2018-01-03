@@ -104,13 +104,14 @@ peer:
     //配置运行该GO应用的最大进程数(runtime.GOMAXPROCS(n),默认-1表示使用系统配置,不进行修改.)
     # Gossip related configuration
     gossip:
+    // 配置节点之间通过gossip进行P2P通信.
         # Bootstrap set to initialize gossip with.
         # This is a list of other peers that this peer reaches out to at startup.
         # Important: The endpoints here have to be endpoints of peers in the same
         # organization, because the peer would refuse connecting to these endpoints
         # unless they are in the same organization as the peer.
         bootstrap: 127.0.0.1:7051
-
+    //启动节点后,向哪些节点发起gossip链接,以加入网络.这些节点与本地节点需要属于同一个组织.
         # NOTE: orgLeader and useLeaderElection parameters are mutual exclusive.
         # Setting both to true would result in the termination of the peer
         # since this is undefined state. If the peers are configured with
