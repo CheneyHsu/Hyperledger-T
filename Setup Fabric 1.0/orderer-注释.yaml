@@ -1,0 +1,244 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
+################################################################################
+#
+#   Orderer Configuration
+#
+#   - This controls the type and configuration of the orderer.
+#
+################################################################################
+General:
+//这部分主要是一些通用配置，如账本类型，服务信息，配置路径等。这些配置影响到服务的主要功能，十分重要。
+
+    # Ledger Type: The ledger type to provide to the orderer.
+    # Two non-production ledger types are provided for test purposes only:
+    #  - ram: An in-memory ledger whose contents are lost on restart.
+    #  - json: A simple file ledger that writes blocks to disk in JSON format.
+    # Only one production ledger type is provided:
+    #  - file: A production file-based ledger.
+    LedgerType: file
+//账本类型，支持ram、json、file三种类型，其中ram保存在内存中，非持久化；json和file保存在本地文件中
+//(通常在/var/hyperledger/production/orderer路径下），持久化。生产环境下推荐使用file类型；
+    # Listen address: The IP on which to bind to listen.
+    ListenAddress: 127.0.0.1
+//监听地址，一般指定为全网服务
+    # Listen port: The port on which to bind to listen.
+    ListenPort: 7050
+//监听端口
+    # TLS: TLS settings for the GRPC server.
+//启用TLS时的相关配置，相关文件路径可以为绝对路径，
+//或者是相对配置目录（$FABRIC_CFG_PATH或当前目录，或/etc/hyperledger/fabric/）的相对路径；
+    TLS:
+        Enabled: false
+        PrivateKey: tls/server.key
+        Certificate: tls/server.crt
+        RootCAs:
+          - tls/ca.crt
+        ClientAuthEnabled: false
+        ClientRootCAs:
+
+    # Log Level: The level at which to log. This accepts logging specifications
+    # per: fabric/docs/Setup/logging-control.md
+    LogLevel: info
+//指定日志的级别，通常至少为INFO或更高
+    # Log Format:  The format string to use when logging.  Especially useful to disable color logging
+    LogFormat: '%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] %{shortfunc} -> %{level:.4s} %{id:03x}%{color:reset} %{message}'
+
+    # Genesis method: The method by which the genesis block for the orderer
+    # system channel is specified. Available options are "provisional", "file":
+    #  - provisional: Utilizes a genesis profile, specified by GenesisProfile,
+    #                 to dynamically generate a new genesis block.
+    #  - file: Uses the file provided by GenesisFile as the genesis block.
+    GenesisMethod: provisional
+//系统通道初始区块的提供方式，支持provisional或file。
+//前者根据GenesisProfile指定的在默认的$FABRIC_CFG_PATH/configtx.yaml配置文件中的Profile生成，
+//后者使用GenesisFile指定的现成初始区块文件；
+    # Genesis profile: The profile to use to dynamically generate the genesis
+    # block to use when initializing the orderer system channel and
+    # GenesisMethod is set to "provisional". See the configtx.yaml file for the
+    # descriptions of the available profiles. Ignored if GenesisMethod is set to
+    # "file".
+    GenesisProfile: SampleInsecureSolo
+//provisional方式生成初始区块时采用的Profile，仅当GenesisMethod为provisional时候生效；
+    # Genesis file: The file containing the genesis block to use when
+    # initializing the orderer system channel and GenesisMethod is set to
+    # "file". Ignored if GenesisMethod is set to "provisional".
+    GenesisFile: genesisblock
+//使用现成初始区块文件时，指定区块文件所在路径，可以为绝对路径也可以是相对路径，仅当GenesisMethod为file时生效；
+    # LocalMSPDir is where to find the private crypto material needed by the
+    # orderer. It is set relative here as a default for dev environments but
+    # should be changed to the real location in production.
+    LocalMSPDir: msp
+//MSP目录所在的路径，可以为绝对路径或相对路径，一般建议为$FABRIC_CFG_PATH/msp；
+    # LocalMSPID is the identity to register the local MSP material with the MSP
+    # manager. IMPORTANT: The local MSP ID of an orderer needs to match the MSP
+    # ID of one of the organizations defined in the orderer system channel's
+    # /Channel/Orderer configuration. The sample organization defined in the
+    # sample configuration provided has an MSP ID of "DEFAULT".
+    LocalMSPID: DEFAULT
+//Orderer所关联的MSP的ID，需要与联盟配置中的组织的MSP名称一致
+    # Enable an HTTP service for Go "pprof" profiling as documented at:
+    # https://golang.org/pkg/net/http/pprof
+    Profile: //是否启用Go自带的profiling支持进行调试，生产环境下建议关闭。
+        Enabled: false
+        Address: 0.0.0.0:6060
+
+    # BCCSP configures the blockchain crypto service providers.
+    BCCSP: //密码库相关配置，包括算法、文件路径等，默认是采用软件加密机制SW；
+        # Default specifies the preferred blockchain crypto service provider
+        # to use. If the preferred provider is not available, the software
+        # based provider ("SW") will be used.
+        # Valid providers are:
+        #  - SW: a software based crypto provider
+        #  - PKCS11: a CA hardware security module crypto provider.
+        Default: SW 
+
+        # SW configures the software based blockchain crypto provider.
+        SW:
+            # TODO: The default Hash and Security level needs refactoring to be
+            # fully configurable. Changing these defaults requires coordination
+            # SHA2 is hardcoded in several places, not only BCCSP
+            Hash: SHA2
+            Security: 256
+            # Location of key store. If this is unset, a location will be
+            # chosen using: 'LocalMSPDir'/keystore
+            FileKeyStore:
+                KeyStore:
+
+################################################################################
+#
+#   SECTION: File Ledger
+#
+#   - This section applies to the configuration of the file or json ledgers.
+#
+################################################################################
+FileLedger:
+
+    # Location: The directory to store the blocks in.
+    # NOTE: If this is unset, a new temporary location will be chosen every time
+    # the orderer is restarted, using the prefix specified by Prefix.
+    Location: /var/hyperledger/production/orderer
+//指定存放区块文件的位置，一般为/var/hyperledger/production/orderer。
+//该目录下面包括chains子目录，存放各个chain的区块，index目录存放索引文件；
+    # The prefix to use when generating a ledger directory in temporary space.
+    # Otherwise, this value is ignored.
+    Prefix: hyperledger-fabric-ordererledger
+//如果不指定Location，则在临时目录下创建账本时目录的名称。
+
+################################################################################
+#
+#   SECTION: RAM Ledger
+#
+#   - This section applies to the configuration of the RAM ledger.
+#
+################################################################################
+RAMLedger:
+
+    # History Size: The number of blocks that the RAM ledger is set to retain.
+    # WARNING: Appending a block to the ledger might cause the oldest block in
+    # the ledger to be dropped in order to limit the number total number blocks
+    # to HistorySize. For example, if history size is 10, when appending block
+    # 10, block 0 (the genesis block!) will be dropped to make room for block 10.
+    HistorySize: 1000
+//主要是指定使用基于内存的账本类型时最多保留的区块个数：
+################################################################################
+#
+#   SECTION: Kafka
+#
+#   - This section applies to the configuration of the Kafka-based orderer, and
+#     its interaction with the Kafka cluster.
+#
+################################################################################
+Kafka:
+//当Orderer使用Kafka集群作为后端时，配置Kafka的相关配置。主要包括：
+//·Retry：连接时的重试操作等，Orderer会利用sarama客户端为channel创建一个producer负责向Kafka写数据，一个consumer负责从Kafka读数据；
+//·Verbose：是否开启Kafka客户端的调试日志；
+
+
+    # Retry: What do if a connection to the Kafka cluster cannot be established,
+    # or if a metadata request to the Kafka cluster needs to be repeated.
+    Retry:  //Kafka未就绪时Orderer的重试配置
+        # When a new channel is created, or when an existing channel is reloaded
+        # (in case of a just-restarted orderer), the orderer interacts with the
+        # Kafka cluster in the following ways:
+        # 1. It creates a Kafka producer (writer) for the Kafka partition that
+        # corresponds to the channel.
+        # 2. It uses that producer to post a no-op CONNECT message to that
+        # partition
+        # 3. It creates a Kafka consumer (reader) for that partition.
+        # If any of these steps fail, they will be re-attempted every
+        # <ShortInterval> for a total of <ShortTotal>, and then every
+        # <LongInterval> for a total of <LongTotal> until they succeed.
+        # Note that the orderer will be unable to write to or read from a
+        # channel until all of the steps above have been completed successfully.
+        ShortInterval: 5s //操作失败后的快速重试阶段的间隔
+        ShortTotal: 10m  //快速重试阶段最多重试多长时间
+        LongInterval: 5m //快速重试阶段仍然失败后进入慢重试阶段，慢重试阶段的时间间隔
+        LongTotal: 12h //慢重试阶段最多重试多少时间
+        # Affects the socket timeouts when waiting for an initial connection, a
+        # response, or a transmission. See Config.Net for more info:
+        # https://godoc.org/github.com/Shopify/sarama#Config
+        NetworkTimeouts:  //sarama 网络超时
+            DialTimeout: 10s
+            ReadTimeout: 10s
+            WriteTimeout: 10s
+        # Affects the metadata requests when the Kafka cluster is in the middle
+        # of a leader election.See Config.Metadata for more info:
+        # https://godoc.org/github.com/Shopify/sarama#Config
+        Metadata:  //kafka集群leader选举中的metadata请求参数
+            RetryBackoff: 250ms
+            RetryMax: 3
+        # What to do if posting a message to the Kafka cluster fails. See
+        # Config.Producer for more info:
+        # https://godoc.org/github.com/Shopify/sarama#Config
+        Producer:  //发送消息到kafka集群的超时时间
+            RetryBackoff: 100ms
+            RetryMax: 3
+        # What to do if reading from the Kafka cluster fails. See
+        # Config.Consumer for more info:
+        # https://godoc.org/github.com/Shopify/sarama#Config
+        Consumer://从kafka集群读取消息时间
+            RetryBackoff: 2s
+
+    # Verbose: Enable logging for interactions with the Kafka cluster.
+    Verbose: false  //连接到Kafka的客户端的日志配置
+
+    # TLS: TLS settings for the orderer's connection to the Kafka cluster.
+    TLS: //与Kafka集群的连接启用TLS时的相关配置
+
+      # Enabled: Use TLS when connecting to the Kafka cluster.
+      Enabled: false  // 是否启用TLS，默认不开启
+
+      # PrivateKey: PEM-encoded private key the orderer will use for
+      # authentication.
+      PrivateKey:
+       //Orderer证明身份用的签名私钥
+
+        # As an alternative to specifying the PrivateKey here, uncomment the
+        # following "File" key and specify the file name from which to load the
+        # value of PrivateKey.
+        #File: path/to/PrivateKey
+
+      # Certificate: PEM-encoded signed public key certificate the orderer will
+      # use for authentication.
+      Certificate:  //kafka身份证书
+        # As an alternative to specifying the Certificate here, uncomment the
+        # following "File" key and specify the file name from which to load the
+        # value of Certificate.
+        #File: path/to/Certificate
+
+      # RootCAs: PEM-encoded trusted root certificates used to validate
+      # certificates from the Kafka cluster.
+      RootCAs: //验证kafka证书时的根CA证书
+        # As an alternative to specifying the RootCAs here, uncomment the
+        # following "File" key and specify the file name from which to load the
+        # value of RootCAs.
+        #File: path/to/RootCAs
+
+    # Kafka version of the Kafka cluster brokers (defaults to 0.9.0.1)
+    Version: //kafaka
+    //kafaka版本号。

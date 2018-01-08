@@ -124,98 +124,128 @@ peer:
         # to pull ledger blocks from ordering service. It is recommended to
         # use leader election for large networks of peers.
         useLeaderElection: false
+        //是否允许节点之间进行动态（Leader）节点选举，默认为禁止
         # Statically defines peer to be an organization "leader",
         # where this means that current peer will maintain connection
         # with ordering service and disseminate block across peers in
         # its own organization
         orgLeader: true
-
+        //本节点是否指定为组织代表节点。与useLeaderElection不能同时指定为true
         # Overrides the endpoint that the peer publishes to peers
         # in its organization. For peers in foreign organizations
         # see 'externalEndpoint'
         endpoint:
+        //本节点在统一组织内的GOSSIP ID，默认为peer.address
         # Maximum count of blocks stored in memory
         maxBlockCountToStore: 100
+        //保存在内存中的区块个数上线，超过则丢弃。
         # Max time between consecutive message pushes(unit: millisecond)
         maxPropagationBurstLatency: 10ms
+        //保存消息最大的时间，超过则触发转发给其他节点
         # Max number of messages stored until a push is triggered to remote peers
         maxPropagationBurstSize: 10
+        //保存的消息最大个数，超过则转发给其他节点
         # Number of times a message is pushed to remote peers
         propagateIterations: 1
+        //消息转发次数
         # Number of peers selected to push messages to
         propagatePeerNum: 3
+        //指定推送的节点个数
         # Determines frequency of pull phases(unit: second)
         pullInterval: 4s
+          //拉取消息的时间间隔              
         # Number of peers to pull from
         pullPeerNum: 3
+        //从指定的节点个数拉取消息
         # Determines frequency of pulling state info messages from peers(unit: second)
         requestStateInfoInterval: 4s
+        //从节点拉取状态信息（Stateinfo）消息的间隔
         # Determines frequency of pushing state info messages to peers(unit: second)
         publishStateInfoInterval: 4s
+        //向其他节点推送信息的时间间隔
         # Maximum time a stateInfo message is kept until expired
         stateInfoRetentionInterval:
+        //状态信息超时时间间隔
         # Time from startup certificates are included in Alive messages(unit: second)
         publishCertPeriod: 10s
+        //启动后，在心跳消息中嵌入证书的等待时间
         # Should we skip verifying block messages or not (currently not in use)
         skipBlockVerification: false
+        //是否不对区块进行校验，默认为flase
         # Dial timeout(unit: second)
         dialTimeout: 3s
+        //gRPC链接拨号的超时
         # Connection timeout(unit: second)
         connTimeout: 2s
+        //建立链接超时
         # Buffer size of received messages
         recvBuffSize: 20
+        //收取消息的缓冲大小
         # Buffer size of sending messages
         sendBuffSize: 200
+        //发送消息的缓冲大小
         # Time to wait before pull engine processes incoming digests (unit: second)
         digestWaitTime: 1s
+        //处理摘要数据的等待时间
         # Time to wait before pull engine removes incoming nonce (unit: second)
         requestWaitTime: 1s
+        //处理nonce数据的等待时间
         # Time to wait before pull engine ends pull (unit: second)
         responseWaitTime: 2s
+        //终止拉取数据处理的等待时间
         # Alive check interval(unit: second)
         aliveTimeInterval: 5s
+        //心跳间隔
         # Alive expiration timeout(unit: second)
         aliveExpirationTimeout: 25s
+        //心跳超期时间
         # Reconnect interval(unit: second)
         reconnectInterval: 25s
+        //断线后重连的时间间隔
         # This is an endpoint that is published to peers outside of the organization.
         # If this isn't set, the peer will not be known to other organizations.
         externalEndpoint:
+        //节点被组织外节点感知时的地址，默认为空，代表不被其他组织感知
         # Leader election service configuration
         election:
             # Longest time peer waits for stable membership during leader election startup (unit: second)
             startupGracePeriod: 15s
+            //代表成员选举等待的时间
             # Interval gossip membership samples to check its stability (unit: second)
             membershipSampleInterval: 1s
+            //检查成员稳定性的采样间隔
             # Time passes since last declaration message before peer decides to perform leader election (unit: second)
             leaderAliveThreshold: 10s
+            //Peer尝试进行选举的等待超时
             # Time between peer sends propose message and declares itself as a leader (sends declaration message) (unit: second)
             leaderElectionDuration: 5s
-
+            //Peer宣布自己为代表节点的等待时间
     # EventHub related configuration
     events:
         # The address that the Event service will be enabled on the peer
         address: 0.0.0.0:7053
-
+        //监听地址
         # total number of events that could be buffered without blocking send
         buffersize: 100
-
+        //最大进行缓冲的消息数，超过则向缓冲中发送时间消息会被阻塞
         # timeout duration for producer to send an event.
         # if < 0, if buffer full, unblocks immediately and not send
         # if 0, if buffer full, will block and guarantee the event will be sent out
         # if > 0, if buffer full, blocks till timeout
         timeout: 10ms
+        //当缓冲已满情况下，往缓冲中发送消息的超时。小于0的值，表示直接丢弃消息；0值表示阻塞直到发出；大于0的值表示阻塞尝试直到超时，超时后还不能发出则丢弃。      
 
     # TLS Settings
     # Note that peer-chaincode connections through chaincodeListenAddress is
     # not mutual TLS auth. See comments on chaincodeListenAddress for more info
     tls:
         enabled:  false
-        cert:
+        // 是否开启tls
+        cert: // 本服务的身份验证证书，公开可见，访问者通过该证书进
             file: tls/server.crt
-        key:
+        key: // 本服务的签名私钥
             file: tls/server.key
-        rootcert:
+        rootcert: //信任的根CA证书
             file: tls/ca.crt
 
         # The server name use to verify the hostname returned by TLS handshake
@@ -268,16 +298,16 @@ peer:
 #
 ###############################################################################
 vm:
-
+    //对链码运行环境配置，支持容器
     # Endpoint of the vm management system.  For docker can be one of the following in general
     # unix:///var/run/docker.sock
     # http://localhost:2375
     # https://localhost:2376
     endpoint: unix:///var/run/docker.sock
-
+    //Docker Daemon地址，默认是本地套接字；
     # settings for docker vms
     docker:
-        tls:
+        tls:  //Docker Daemon启用TLS时的相关证书配置，包括信任的根CA证书、服务身份证书、签名私钥等；
             enabled: false
             ca:
                 file: docker/ca.crt
@@ -289,7 +319,7 @@ vm:
         # Enables/disables the standard out/err from chaincode containers for
         # debugging purposes
         attachStdout: false
-
+        //是否启用绑定到标准输出，启用后链码容器的输出消息会绑定到标准输出，方便进行调试使用；
         # Parameters on creating docker container.
         # Container may be efficiently created using ipam & dns-server for cluster
         # NetworkMode - sets the networking mode for the container. Supported
@@ -301,8 +331,8 @@ vm:
         # (Config) for Docker. For more info,
         # https://docs.docker.com/engine/admin/logging/overview/
         # Note: Set LogConfig using Environment Variables is not supported.
-        hostConfig:
-            NetworkMode: host
+        hostConfig: //Docker相关的主机配置，包括网络配置，日志，内存等
+            NetworkMode: host   //host意味着链码容器直接使用所在主机的网络命名空间
             Dns:
                # - 192.168.0.1
             LogConfig:
@@ -326,23 +356,24 @@ chaincode:
     # ID with the Peer and is generally supplied through ENV variables
     # the `path` form of ID is provided when installing the chaincode.
     # The `name` is used for all other requests and can be any string.
-    id:
+    id:  //动态标记链码的信息，该信息会以标签形式写到链码容器
         path:
         name:
 
     # Generic builder environment, suitable for most chaincode types
     builder: $(DOCKER_NS)/fabric-ccenv:$(ARCH)-$(PROJECT_VERSION)
+    //通用的本地编译环境，是一个Docker镜像
 
-    golang:
+    golang: //Go语言的链码部署生成镜像的基础Docker镜像
         # golang will never need more than baseos
         runtime: $(BASE_DOCKER_NS)/fabric-baseos:$(ARCH)-$(BASE_VERSION)
 
-    car:
+    car: // car格式的链码部署生成镜像的基础Docker镜像
         # car may need more facilities (JVM, etc) in the future as the catalog
         # of platforms are expanded.  For now, we can just use baseos
         runtime: $(BASE_DOCKER_NS)/fabric-baseos:$(ARCH)-$(BASE_VERSION)
 
-    java:
+    java: //生成Java链码容器时候的基础镜像信息
         # This is an image based on java:openjdk-8 with addition compiler
         # tools added for java shim layer packaging.
         # This image is packed with shim layer libraries that are necessary
@@ -352,7 +383,7 @@ chaincode:
 
     # Timeout duration for starting up a container and waiting for Register
     # to come through. 1sec should be plenty for chaincode unit tests
-    startuptimeout: 300s
+    startuptimeout: 300s  // 启动链码容器的超时
 
     # Timeout duration for Invoke and Init calls to prevent runaway.
     # This timeout is used by all chaincodes in all the channels, including
@@ -362,24 +393,24 @@ chaincode:
     # build the image, which might take more time. In production environment,
     # the chaincode image is unlikely to be deleted, so the timeout could be
     # reduced accordingly.
-    executetimeout: 30s
+    executetimeout: 30s  //invoke和initialize命令执行超时
 
     # There are 2 modes: "dev" and "net".
     # In dev mode, user runs the chaincode after starting peer from
     # command line on local machine.
     # In net mode, peer will run chaincode in a docker container.
-    mode: net
+    mode: net  //执行链码的模式
 
     # keepalive in seconds. In situations where the communiction goes through a
     # proxy that does not support keep-alive, this parameter will maintain connection
     # between peer and chaincode.
     # A value <= 0 turns keepalive off
-    keepalive: 0
+    keepalive: 0  //Peer和链码之间的心跳超时，小于或等于0意味着关闭
 
     # system chaincodes whitelist. To add system chaincode "myscc" to the
     # whitelist, add "myscc: enable" to the list below, and register in
     # chaincode/importsysccs.go
-    system:
+    system: //系统链码配置
         cscc: enable
         lscc: enable
         escc: enable
@@ -387,7 +418,7 @@ chaincode:
         qscc: enable
 
     # Logging section for the chaincode container
-    logging:
+    logging:  //链码容器日志
       # Default level for all loggers within the chaincode container
       level:  info
       # Override default level for the 'shim' module
@@ -403,14 +434,16 @@ chaincode:
 ###############################################################################
 ledger:
 
-  blockchain:
+  blockchain:  //设置系统区块链的整体配置，后面可能会丢弃；
 
-  state:
+
+  state:  //状态数据库的相关配置信息，包括类型（目前支持goleveldb和couchdb，前者轻量级性能高，后者支持复杂格式的查询）、数据库连接信息、查询最大返回记录数等；
+
     # stateDatabase - options are "goleveldb", "CouchDB"
     # goleveldb - default state database stored in goleveldb.
     # CouchDB - store state database in CouchDB
     stateDatabase: goleveldb
-    couchDBConfig:
+    couchDBConfig:   //如果启用couchdb数据库，配置相关链接信息
        # It is recommended to run CouchDB on the same server as the peer, and
        # not map the CouchDB container port to a server port in docker-compose.
        # Otherwise proper security must be provided on the connection between
@@ -424,18 +457,18 @@ ledger:
        # to prevent unintended users from discovering the password.
        password:
        # Number of retries for CouchDB errors
-       maxRetries: 3
+       maxRetries: 3  //出错重试次数
        # Number of retries for CouchDB errors during peer startup
-       maxRetriesOnStartup: 10
+       maxRetriesOnStartup: 10  //启动出错的重试次数
        # CouchDB request timeout (unit: duration, e.g. 20s)
-       requestTimeout: 35s
+       requestTimeout: 35s //请求超时
        # Limit on the number of records to return per query
-       queryLimit: 10000
+       queryLimit: 10000 //每个查询最大返回记录
 
 
-  history:
+  history: //是否用goleveldb来记录键值历史，默认开启。
     # enableHistoryDatabase - options are true or false
     # Indicates if the history of key updates should be stored.
     # All history 'index' will be stored in goleveldb, regardless if using
     # CouchDB or alternate database for the state.
-    enableHistoryDatabase: true
+    enableHistoryDatabase: true   //是否启用历史数据库

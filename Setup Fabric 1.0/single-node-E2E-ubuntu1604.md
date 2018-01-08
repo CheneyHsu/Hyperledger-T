@@ -437,3 +437,9 @@ example.com/peers/peer0.org1.example.com/msp/ \
 6. Fabric in Docker
 * ./network_setup.sh up mytestchannel
 
+
+### 配置解读
+1. core.yaml
+2. crypto-config.yaml
+3. orderer.yaml
+>以上参考配置文件解读。
