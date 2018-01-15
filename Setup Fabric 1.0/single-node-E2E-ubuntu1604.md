@@ -63,6 +63,21 @@
         3.    cd fabric-ca
         4.    make docker
 
+### Fabric 1.0 节点介绍
+
+    ·背书节点（Endorser）：负责对交易的提案（proposal）进行检查和背书，计算交易执行结果；
+    ·确认节点（Committer）：负责在接受交易结果前再次检查合法性，接受合法交易对账本的修改，并写入区块链结构；
+    ·排序节点（Orderer）：对所有发往网络中的交易进行排序，将排序后的交易按照配置中的约定整理为区块，之后提交给确认节点进行处理；
+    ·证书节点（CA）：负责对网络中所有的证书进行管理，提供标准的PKI服务。
+
+### 启动Fabric 1.0 节点需要遵循以下步骤
+
+    1）预备网络内各项配置，包括网络中成员的组织结构和对应的身份证书（使用cryptogen工具完成）；生成系统通道的初始配置区块文件，新建应用通道的配置更新交易文件以及可能需要的锚节点配置更新交易文件（使用configtxgen工具完成）。
+    2）使用系统通道的初始配置区块文件启动排序节点，排序节点启动后自动按照指定配置创建系统通道。
+    3）不同的组织按照预置角色分别启动Peer节点。这个时候网络中不存在应用通道，Peer节点也并没有加入网络中。
+    4）使用新建应用通道的配置更新交易文件，向系统通道发送交易，创建新的应用通道。
+    5）让对应的Peer节点加入所创建的应用通道中，此时Peer节点加入网络，可以准备接收交易了。
+    6）用户通过客户端向网络中安装注册链码，链码容器启动成功后用户即可对链码进行调用，将交易发送到网络中。
 
 ### Docker Example
 
@@ -73,6 +88,20 @@
 ![jpg](../images/docker-required.jpg)
 
 ![jpg](../images/docker-required-2.jpg)
+
+### Fabric 示例
+
+启动的Fabric网络中包括一个Orderer节点和四个Peer节点，以及一个管理节点生成相关启动文件，在网络启动后作为操作客户端执行命令。
+四个Peer节点分属于同一个管理域（example.com）下的两个组织Org1和Org2，这两个组织都加入同一个应用通道（business-channel）中。每个组织中的第一个节点（peer0节点）作为锚节点与其他组织进行通信，所有节点通过域名都可以相互访问，整体网络拓扑如图所示。
+
+![jpg](../images/4peer-solo.jpg)
+
+Fabric网络在启动之前，需要提前生成一些用于启动的配置文件，主要包括MSP相关文件（msp/*）、TLS相关文件（tls/*）、系统通道初始区块（orderer.genesis.block）、新建应用通道交易文件（businesschannel.tx）、锚节点配置更新交易文件Org1MSPanchors.tx和Org2MSPanchors.tx）等
+
+![jpg](../images/fabric-file.jpg)
+
+
+
 
 ### Start Fabric (可用于物理机)
 
@@ -101,12 +130,6 @@ PeerOrgs:
     Users:
       Count: 1
 ```
-
-
-![jpg](../images/start-fabric-n.jpg)
-
-![jpg](../images/fabric-file.jpg)
-
 * 使用该配置文件，通过如下命令可以为Fabric网络生成指定拓扑结构的组织和身份文件，存放到crypto-config目录下：
 * $ cryptogen generate --config=./crypto-config.yaml --output ./crypto-config
 * 查看crypto-config目录结构，按照示例crypto-config.yaml中的定义进行生成：
@@ -282,7 +305,7 @@ $ configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./Org1MSPanchors.
 $ configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./Org2MSPanchors.tx -channelID ${CHANNEL_NAME} -asOrg Org2MSP
 ```
 * 所生成的锚节点配置更新文件会在后续步骤被客户端使用，因此可以放在客户端节点上。
-* 所有用于启动的配置文件生成并部署到对应节点后，可以进行服务的启动操作，首先要启动Orderer节点，然后启动Peer节点。
+* 所有用于启动的配置文件生成并部署到对应节点后，可以进行服务的启动操作，`首先要启动Orderer节点，然后启动Peer节点。`
 
 ### Start Orderer
 * 首先，检查启动节点的所有配置是否就绪：
@@ -290,7 +313,7 @@ $ configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./Org2MSPanchors.
 * ·在/etc/hyperledger/fabric路径下放置生成的msp文件目录、tls文件目录；
 * ·在/etc/hyperledger/fabric路径下放置初始区块文件orderer.genesis.block。
 * Orderer节点的默认配置文件中指定了简单的Orderer节点功能。
-* 通常情况下，在使用时根据需求往往要对其中一些关键配置进行指定。表9-3总结了如何通过环境变量方式对这些关键配置进行更新。
+* 通常情况下，在使用时根据需求往往要对其中一些关键配置进行指定。表总结了如何通过`环境变量`方式对这些关键配置进行更新。
 ![jpg](../images/orderer-setup.jpg)
 * orderer start
 
@@ -439,7 +462,4 @@ example.com/peers/peer0.org1.example.com/msp/ \
 
 
 ### 配置解读
-1. core.yaml
-2. crypto-config.yaml
-3. orderer.yaml
->以上参考配置文件解读。
+>参考文件:/1.0-e2e-yaml&sh
