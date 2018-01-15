@@ -25,7 +25,7 @@
     11. pip install docker-compose
 ### Setup GoLang
 
-    1.    wget https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
+    1.    wget https://dl.gocn.io/golang/1.9.2/go1.9.2.linux-amd64.tar.gz
     2.    tar -xzvf go1.8.1.linux-amd64.tar.gz
     3.    mv ./go  /usr/local
     4.    vim /etc/profile
