@@ -16,20 +16,27 @@ limitations under the License.
 
 package main
 
+//程序入口
+
 //WARNING - this chaincode's ID is hard-coded in chaincode_example04 to illustrate one way of
 //calling chaincode from a chaincode. If this example is modified, chaincode_example04.go has
 //to be modified as well with the new ID of chaincode_example02.
 //chaincode_example05 show's how chaincode ID can be passed in as a parameter instead of
 //hard-coding.
 
+// import 所需包
+
 import (
-	"fmt"
-	"strconv"
+	"fmt"     //fmt
+	"strconv" //类型转换
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	//shim包提供了链码与账本交互的中间层。链码通过shim.ChaincodeStub提供的方法来读取和修改账本状态；
 	pb "github.com/hyperledger/fabric/protos/peer"
+	//Init和Invoke方法需要返回pb.Response类型
 )
 
+//生命链码结构体
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
 }

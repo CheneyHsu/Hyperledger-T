@@ -35,6 +35,7 @@ $ peer chaincode install \
 * 主要步骤包括:
 
     1）首先是构造签名提案消息（SignedProposal）。
+        
         a）调用InitCmdFactory（isEndorserRequired，isOrdererRequired bool）（*ChaincodeCmdFactory，error）方法，初始化EndoserClient、Signer等结构。这一步初始化操作对于所有链码子命令来说都是类似的，会初始化不同的结构。
         b）然后根据命令行参数进行解析，判断是根据传入的打包文件直接读取ChaincodeDeploymentSpec（CDS）结构，还是根据传入参数从本地链码文件来重新构造。
         c）以本地重新构造情况为例，首先根据命令行中传入的路径、名称等信息，构造生成ChaincodeSpec（CS）结构。
@@ -42,7 +43,9 @@ $ peer chaincode install \
         e）install方法基于传入的ChaincodeDeploymentSpec结构，构造一个对生命周周期管理系统链码（LSCC）调用的ChaincodeSpec结构，其中，Type为ChaincodeSpec_GOLANG，ChaincodeId.Name为“lscc”，Input为“install”+ChaincodeDeploymentSpec。进一步地，构造了一个LSCC的ChaincodeInvocationSpec（CIS）结构，对ChaincodeSpec结构进行封装。
         f）基于LSCC的ChaincodeInvocationSpec结构，添加头部结构，生成一个提案（Proposal）结构。其中，通道头部中类型为ENDORSER_TRANSACTION，TxID为对随机数+签名实体，进行Hash。
         g）对Proposal进行签名，转化为一个签名后的提案消息SignedProposal。
+
     2）通过EndorserClient经由gRPC通道发送给Peer的ProcessProposal（ctx context.Context，in*SignedProposal，opts...grpc.CallOption）（*ProposalResponse，error）接口。
+
     3）Peer模拟运行生命周期链码的调用交易进行处理，检查格式、签名和权限等，通过则保存到本地文件系统。
 * 图给出了链码安装过程中所涉及的数据结构，这些数据结构对于大部分链码操作命令都是类似的，其中最重要的是ChannelHeader结构和ChaincodeSpec结构中参数的差异。
 ![jpg](../images/chaincode-7.jpg)
@@ -65,10 +68,15 @@ $ peer chaincode instantiate \
 * 链码实例化整体流程
 ![jpg](../images/chaincode-8.jpg)
 * 主要步骤包括：
+
     1）首先，类似链码安装命令，需要创建一个SignedProposal消息。注意instantiate和upgrade支持policy、escc、vscc等参数。LSCC的ChaincodeSpec结构中，Input中包括类型（“deploy”）、通道ID、ChaincodeDeploymentSpec结构、背书策略、escc和vscc等。
+
     2）调用EndorserClient，发送gRPC消息，将签名后的Proposal发给指定的Peer节点（Endorser），调用ProcessProposal（ctx context.Context，in*SignedProposal，opts...grpc.CallOption）（*ProposalResponse，error）方法，进行背书处理。节点会模拟运行LSCC的调用交易，启动链码容器。实例化成功后会返回ProposalResponse消息（其中包括背书签名）。
+
     3）根据Peer返回的ProposalResponse消息，创建一个SignedTX（Envelop结构的交易，带有签名）。
+
     4）使用BroadcastClient将交易消息通过gRPC通道发给Orderer，Orderer会进行全网排序，并广播给Peer进行确认提交。
+
 * 其中，SignedProposal结构如图所示。
 ![jpg](../images/chaincode-9.jpg)
 * 交易Envelope结构如图所示:
@@ -93,3 +101,20 @@ Endorsement *Endorsement `protobuf:"bytes,6,opt,name=endorsement" json:
 "endorsement,omitempty"`
 }
 ```
+
+4. 调用链码
+
+* 通过invoke命令可以调用运行中的链码的方法。“-c”参数指定的函数名和参数会被传入到链码的Invoke（）方法进行处理。调用链码操作需要同时跟Peer和Orderer打交道。
+* 例如，对部署成功的链码执行调用操作，由a向b转账10元。在peer0容器中执行如下操作，注意验证最终结果状态正常response：<status：200 message："OK">：
+
+```
+$ peer chaincode invoke \
+-o orderer0:7050 \
+-n test_cc \
+-C ${CHANNEL_NAME} \
+-c '{"Args":["invoke","a","b","10"]}'
+```
+
+这一命令会调用最新版本的test_cc链码，将参数'{"Args"：["invoke"，"a"，"b"，"10"]}'传入链码中的Invoke（）方法执行。命令会生成一笔交易，需指定排序者地址。
+
+需要注意，invoke命令不支持指定链码版本，只能调用最新版本的链码。
